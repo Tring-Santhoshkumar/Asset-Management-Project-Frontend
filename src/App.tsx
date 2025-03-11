@@ -2,6 +2,8 @@ import './component/customComponents/InputFieldStyle.scss';
 import './pages/RegisterPage/RegisterStyle.scss';
 import './component/layouts/SidebarStyle.scss'
 import './component/layouts/DashboardLayoutStyle.scss'
+import './pages/UserPage/UsersStyle.scss';
+import './pages/AdminPage/AdminUsersStyle.scss';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import ProtectedRoutes from './component/authentication/ProtectedRoutes';
 import PublicRoutes from './component/authentication/PublicRoutes';

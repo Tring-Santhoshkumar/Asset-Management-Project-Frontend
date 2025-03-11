@@ -30,6 +30,7 @@ const Login = () => {
               localStorage.setItem("token", token);
               const decodedData : any = jwtDecode(token);
               localStorage.setItem("role", decodedData.role);
+              if(decodedData.role == 'user') localStorage.setItem("userId",decodedData.id);
               navigate(decodedData.role == "admin" ? "/admin/dashboard" : "/users/dashboard");
               toastAlert('success','Login Successfull!!!');
             }

@@ -1,0 +1,37 @@
+.usersContainer{
+    padding: 20px;
+
+    .adminUsersHeading{
+        margin-bottom: 15px;
+    }
+  
+    .tableUsers{
+      width: 100%;
+      border-collapse: collapse;
+
+      th{
+        font-size: 15px;
+        color: #4aa5c7;
+        background-color: #f4f4f4;
+      }
+
+      th,td{
+        text-align: left;
+        border: 1px solid #bbbaba;
+        padding: 10px;
+      }
+  
+      button{
+        background-color: #4aa5c7;
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        cursor: pointer;
+        
+        &:hover{
+          background-color: #4bbde7;
+        }
+      }
+    }
+  }
+  

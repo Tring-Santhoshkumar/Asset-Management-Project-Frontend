@@ -31,6 +31,10 @@ export const privateRoutes = [
     },
     {
         path : "/users/dashboard",
-        element : <Users />
+        element: <Users userId = { localStorage.getItem("userId") || "" } />
+    },
+    {
+        path: "/admin/users/:userId",
+        element: <Users userId={localStorage.getItem("selectedUserId") || ""} />
     },
 ]

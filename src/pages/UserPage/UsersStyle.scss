@@ -1,0 +1,89 @@
+.userDashboard{
+    margin: 10px;
+    width: 700px;
+    padding: 10px;
+    background: #ffffff;
+    .userHeading{
+        font-size: 30px;
+        text-align: center;
+        color: #4aa5c7;
+    }
+    .userForm{
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    .formMain{
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        .fullWidth {
+            grid-column: span 2;
+        }
+    }
+    .formContent{
+        display: flex;
+        flex-direction: column;
+        .userLable{
+            font-size: 15px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .userInput{
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .userInput textarea{
+          min-height: 50px;
+        }
+      }
+    .userButtons{
+        display: flex;
+        justify-content: flex-end;
+        gap: 20px;
+    }
+    .userSubmit{
+        background: #4aa5c7;
+        color: white;
+        text-align: center;
+        font-size: 15px;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.3s ease-in-out;
+        &:hover {
+            background: #369abf;
+        }
+      }
+    }
+  }
+// .assignPopup{
+//   display: flex;
+//   flex-direction: column;
+//   width: 650px; 
+//   height: 400px; 
+//   position: fixed;
+//   top: 50%; 
+//   left: 50%; 
+//   transform: translate(-50%, -50%);
+//   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.5);
+//   border-radius: 10px;
+//   background-color: #ffffff;
+//   z-index: 1000;
+//   overflow-y: auto;
+//   .closeButton{
+//     position: absolute;
+//     top: 10px;
+//     right: 15px;
+//     font-size: 20px;
+//     border: none;
+//     background: none;
+//     cursor: pointer;
+//   }
+//   h1{
+//     font-size: 20px;
+//     text-align: center;
+//   }
+// }
