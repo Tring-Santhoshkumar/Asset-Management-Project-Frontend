@@ -31,9 +31,9 @@ const UsersPage = () => {
           <tr>
             <th>Name</th>
             <th>Email</th>
-            <th>Designation</th>
-            <th>Role</th>
             <th>Gender</th>
+            <th>Designation</th>
+            <th>Department</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -42,9 +42,9 @@ const UsersPage = () => {
             <tr key={user.id}>
               <td>{user.name}</td>
               <td>{user.email}</td>
-              <td>{user.designation}</td>
-              <td>{user.role}</td>
               <td>{user.gender}</td>
+              <td>{user.designation}</td>
+              <td>{user.department}</td>
               <td><button onClick={() => { localStorage.setItem("selectedUserId", user.id); navigate(`/admin/users/${user.id}`);}}>✏️ Edit</button></td>
             </tr>
           ))}

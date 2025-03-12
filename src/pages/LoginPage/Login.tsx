@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation } from "@apollo/client";
 import { LOGINUSER } from "./LoginApi";
 import { jwtDecode } from "jwt-decode";
-import { toastAlert } from "../../component/toastify";
+import { toastAlert } from "../../component/customComponents/toastify";
 interface FormType {
     email: string;
     password: string;
@@ -50,7 +50,7 @@ const Login = () => {
                         <InputField type="password" name="password" placeholder="Enter password" classname="formPassword" />
                         <button type="submit">Submit</button>
                     </form>
-                    <p>New User? <span style={{color:"#4aa5c7",cursor:'pointer'}} onClick={() => navigate('/')}>Register</span></p>
+                    <p className="registerFormPara">New User? <span style={{color:"#4aa5c7",cursor:'pointer'}} onClick={() => navigate('/')}>Register</span></p>
                 </div>
             </div>
         </FormProvider>

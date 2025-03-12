@@ -1,6 +1,6 @@
 .userDashboard{
     margin: 10px;
-    width: 700px;
+    width: 100%;
     padding: 10px;
     background: #ffffff;
     .userHeading{
@@ -16,9 +16,9 @@
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
-        .fullWidth {
-            grid-column: span 2;
-        }
+        // .fullWidth {
+        //     grid-column: span 2;
+        // }
     }
     .formContent{
         display: flex;
@@ -31,16 +31,18 @@
         .userInput{
             padding: 8px;
             border: 1px solid #ccc;
+            width: 500px;
             border-radius: 5px;
             font-size: 1rem;
         }
-        .userInput textarea{
-          min-height: 50px;
-        }
+        // .userInput textarea{
+        //   min-height: 50px;
+        // }
       }
     .userButtons{
         display: flex;
         justify-content: flex-end;
+        margin-right: 80px;
         gap: 20px;
     }
     .userSubmit{

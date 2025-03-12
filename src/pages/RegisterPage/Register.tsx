@@ -3,7 +3,7 @@ import InputField from "../../component/customComponents/InputField";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@apollo/client";
 import { REGISTERUSER } from "./RegisterApi";
-import { toastAlert } from "../../component/toastify";
+import { toastAlert } from "../../component/customComponents/toastify";
 
 interface FormType {
     name: string;
@@ -54,7 +54,7 @@ const Register = () => {
                         )}
                         <button type="submit">Register {userRole}</button>
                     </form>
-                    <p>Have an account? <span style={{color:"#4aa5c7",cursor:'pointer'}} onClick={() => navigate('/login')}>Login</span></p>
+                    <p className="registerFormPara">Have an account? <span style={{color:"#4aa5c7",cursor:'pointer'}} onClick={() => navigate('/login')}>Login</span></p>
                 </div>
             </div>
         </FormProvider>

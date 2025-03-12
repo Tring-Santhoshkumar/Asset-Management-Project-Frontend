@@ -6,9 +6,10 @@ export const GET_USERS = gql`
       id
       name
       email
-      designation
-      role
       gender
+      designation
+      department
+      role
     }
   }
 `;
