@@ -2,38 +2,47 @@
     width: 94%;
     padding: 10px;
     margin: 10px 0;
-    border: 2px solid #4aa5c7;
+    border: 2px solid #1976d2;
     border-radius: 5px;
     font-size: 16px;
     outline: none;
-    transition: background 0.3s;
-}
-.formInput:focus{
-    background-color: rgb(247, 244, 244);
-    border-color: #4aa5c7;
+    transition: all 0.3s ease;
+    background: white;
+    &:focus {
+        background-color: #f8f9fa;
+        border-color: darken(#1976d2, 10%);
+        box-shadow: 0 0 5px rgba(25, 118, 210, 0.3);
+    }
 }
 .radioGroup{
     text-align: center;
 }
 .formRadio{
     font-size: 16px;
-    color: #4aa5c7;
+    color: #1976d2;
     font-weight: 500;
     cursor: pointer;
     padding: 8px;
-}
-.formRadio input[type="radio"]{
-    appearance: none;
-    width: 15px;
-    height: 15px;
-    border: 2px solid #4aa5c7;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-}
-.formRadio input[type="radio"]:checked{
-    border: 5px solid #4aa5c7;
+    input[type="radio"]{
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #1976d2;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+
+        &:checked {
+            border: 5px solid #1976d2;
+        }
+
+        &:hover {
+            border-color: #1a7ee3;
+        }
+    }
+
 }
 .formError{
-    color: red;
+    color: #d32f2f;
+    font-size: 14px;
 }

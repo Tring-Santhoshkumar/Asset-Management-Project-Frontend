@@ -1,38 +1,49 @@
+$primary-color: #1976d2;
+$secondary-color: #424242;
+$background-color: #ffffff;
+$text-color: #212121;
+$hover-color: #4799ea;
+
 .sideBar {
-    width: 100%;
+    width: 250px;
     height: 100vh;
-    overflow: hidden;
-    background: white;
-    color: darkcyan;
-    padding: 20px;
+    top: 0;
+    left: 0;
+    position: fixed;
+    background: $background-color;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-    .sideBarMenu{
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        list-style: none;
+    color: #ffffff;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+
+    .sideBarMenu {
+        flex-grow: 1;
         padding: 0;
-        width: 100%;
-        li{
-          padding: 12px 20px;
-          text-align: left;
-          width: 80%;
-          transition: background 0.3s ease;
-          a{
-            text-decoration: none;
-            color: darkcyan;
+        margin: 0;
+        list-style: none;
+
+        li {
+            padding: 15px 20px;
             font-size: 16px;
-            display: block;
-           }
-        }
-        li:hover{
-            border-radius: 5px;
-            background: darkcyan;
-            color: white;
+            font-weight: 500;
             cursor: pointer;
-            a{
-                color: white;
-                cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s ease, color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: $text-color;
+
+            a {
+                width: 95%;
+                text-decoration: none;
+                color: $text-color;
+            }
+
+            &:hover {
+                background-color: $hover-color;
             }
         }
     }

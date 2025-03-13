@@ -50,7 +50,7 @@ const Login = () => {
                         <InputField type="password" name="password" placeholder="Enter password" classname="formPassword" />
                         <button type="submit">Submit</button>
                     </form>
-                    <p className="registerFormPara">New User? <span style={{color:"#4aa5c7",cursor:'pointer'}} onClick={() => navigate('/')}>Register</span></p>
+                    <p className="registerFormPara">New User? <span onClick={() => navigate('/')}>Register</span></p>
                 </div>
             </div>
         </FormProvider>

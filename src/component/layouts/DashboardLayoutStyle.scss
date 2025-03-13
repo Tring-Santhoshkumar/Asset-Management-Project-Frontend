@@ -1,11 +1,30 @@
-.dashboardLayout{
-    display: flex;
-    .sideContent{
-        overflow: hidden;
-        width: 20%;
-    }
-    .mainContent{
-        height: 100vh;
-        width: 80%;
-    }
+*{
+  margin: 0%;
+  padding: 0%;
 }
+.dashboardLayout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  
+    .sideContent {
+      width: 250px;
+      position: fixed;
+      height: 100vh;
+      left: 0;
+      top: 0;
+      padding: 20px;
+    }
+  
+    .mainContent {
+      flex-grow: 1;
+      height: 100vh;
+      margin-left: 280px;
+      // top: 0;
+    //   margin-bottom: 40px;
+      // padding: 20px;
+      background-color: #ffffff;
+      overflow-y: auto;
+    }
+  }
+  

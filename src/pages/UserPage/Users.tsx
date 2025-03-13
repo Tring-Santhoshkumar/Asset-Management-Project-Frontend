@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { GETUSER, UPDATEUSER } from "./UsersApi";
 import { toastAlert } from "../../component/customComponents/toastify";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import { ASSIGNASSET, GETALLASSETS, REQUESTASSET } from "../AdminPage/AssetsApi";
+import { Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { ASSIGNASSET, GETALLASSETS, GETASSETBYID, REQUESTASSET } from "../AdminPage/AssetsApi";
 import { useForm } from "react-hook-form";
 
 interface UserIdProp {
@@ -18,6 +18,10 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   const { data, loading, error, refetch } = useQuery(GETUSER, { variables: { id: userId } });
 
   const { data: assetData } = useQuery(GETALLASSETS);
+
+  const { data: assetById } = useQuery(GETASSETBYID, { variables: { assigned_to: userId } });
+
+  console.log(assetById);
 
   const [assignAsset] = useMutation(ASSIGNASSET);
 
@@ -50,11 +54,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const [selectedAssetId, setSelectedAssetId] = useState<string>("");
 
-  useEffect(() => {
-    if (data?.user) {
-      reset(data.user);
-    }
-  }, []);
+  const [selectedView, setSelectedView] = useState("profile");
 
   const handleOpen = () => {
     setOpen(true);
@@ -70,32 +70,39 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const handleCloseRequest = () => {
     setOpenRequest(false);
-  } 
+  }
+
+  const [assetDataById, setAssetDataById] = useState<{ asset: any[] }>({ asset: [] });
+
 
   const filtering = assetData?.allAssets?.filter((asset: any) => asset.type == selectedType && asset.assigned_status == "Available");
+
+  const assetDisplaying = () => {
+    console.log("DATASS ", assetDataById);
+  }
 
   const onAssignAsset = async () => {
     // console.log("Asset ID:", selectedAssetId);
     // console.log("User ID:", userId);
-    try{
+    try {
       const res = await assignAsset({ variables: { id: selectedAssetId, assigned_to: userId } });
-      toastAlert('success',"Asset Assigned Successfully!");
+      toastAlert('success', "Asset Assigned Successfully!");
     }
-    catch(error){
+    catch (error) {
       console.error("Mutation Error:", error);
-      toastAlert('error',"Asset Assigned Failed.");
+      toastAlert('error', "Asset Assigned Failed.");
     }
   };
 
   const onRequestAsset = async () => {
-    try{
+    try {
       // const res = await requestAsset({ variables: { id: selectedAssetId, assigned_to: userId } });
       // console.log("Mutation Response:", res);
-      toastAlert('success',"Asset Requested Successfully,You'll be notified through mail!");
+      toastAlert('success', "Asset Requested Successfully,You'll be notified through mail!");
     }
-    catch(error){
+    catch (error) {
       console.error("Mutation Error:", error);
-      toastAlert('error',"Asset Assigned Failed.");
+      toastAlert('error', "Asset Assigned Failed.");
     }
   };
 
@@ -125,15 +132,27 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   return (
     <div className="userDashboard">
       <h2 className="userHeading">User Dashboard</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="userForm">
+
+      <ToggleButtonGroup
+        value={selectedView}
+        exclusive
+        onChange={(event, newView) => { setSelectedView(newView); setAssetDataById(assetById); console.log("assets : ", assetDataById); }}
+        aria-label="user view toggle"
+        style={{ marginBottom: "20px" }}
+      >
+        <ToggleButton value="profile">Profile</ToggleButton>
+        <ToggleButton value="assets">Assets</ToggleButton>
+      </ToggleButtonGroup>
+
+      {selectedView === "profile" && (<form onSubmit={handleSubmit(onSubmit)} className="userForm">
         <div className="formMain">
           <div className="formContent">
-            <label className="userLabel">Name<span style={{color:'red',background:'none'}}>*</span></label>
+            <label className="userLabel">Name<span style={{ color: 'red', background: 'none' }}>*</span></label>
             <input type="text" {...register("name", { required: "Name is required" })} className="userInput" disabled={!editEnable} />
             {errors.name && <p className="error">{errors.name.message}</p>}
           </div>
           <div className="formContent">
-            <label className="userLabel">Email<span style={{color:'red',background:'none'}}>*</span></label>
+            <label className="userLabel">Email<span style={{ color: 'red', background: 'none' }}>*</span></label>
             <input type="email" {...register("email", { required: "Email is required" })} className="userInput" disabled={!editEnable} />
             {errors.email && <p className="error">{errors.email.message}</p>}
           </div>
@@ -280,7 +299,30 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
             </DialogActions>
           </Dialog>
         </div>
-      </form>
+      </form>)}
+      {/* {selectedView === "assets" && (
+        <div className="assetsContainer">
+          {selectedView === "assets" && (
+            <>
+              {console.log("Asset Data:", assetDataById, "Asset Length:", assetDataById?.asset?.length)}
+              <div className="assetsContainer">
+                {
+                  assetDataById.asset.map((asset: any) => (
+                    <Card key={asset.id} sx={{ minWidth: 275, marginBottom: 2 }}>
+                      <CardContent>
+                        <Typography variant="h5" component="div">{asset.name}</Typography>
+                        <Typography color="text.secondary">Type: {asset.type}</Typography>
+                        <Typography color="text.secondary">Version: {asset.version}</Typography>
+                        <Typography color="text.secondary">Status: {asset.assigned_status}</Typography>
+                      </CardContent>
+                    </Card>
+                  ))
+                }
+              </div>
+            </>
+          )}
+        </div>
+      )} */}
     </div>
   )
 }

@@ -52,3 +52,11 @@ export const REQUESTASSET = gql`
     requestAsset(id: $id)
   }
 `
+
+
+export const ADDASSET = gql`
+  mutation AddAsset($type: String!, $serial_no: String!, $name: String!, $version: String!, $specifications: String!, $condition: String!,$assigned_to: ID, $assigned_status: String!,
+                    $assigned_date: String,$return_date: String){
+    addAsset(type: $type, serial_no: $serial_no, name: $name, version: $version, specifications: $specifications, condition: $condition,assigned_to: $assigned_to, assigned_status: $assigned_status, assigned_date: $assigned_date, return_date: $return_date)
+  }
+`

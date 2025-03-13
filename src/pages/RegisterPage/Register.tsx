@@ -54,7 +54,7 @@ const Register = () => {
                         )}
                         <button type="submit">Register {userRole}</button>
                     </form>
-                    <p className="registerFormPara">Have an account? <span style={{color:"#4aa5c7",cursor:'pointer'}} onClick={() => navigate('/login')}>Login</span></p>
+                    <p className="registerFormPara">Have an account? <span onClick={() => navigate('/login')}>Login</span></p>
                 </div>
             </div>
         </FormProvider>
