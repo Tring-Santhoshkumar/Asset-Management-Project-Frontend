@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
 import { useState } from 'react';
 import 'primeicons/primeicons.css';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, TextField } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { AddCircleOutline, FilterList } from "@mui/icons-material";
 import { toastAlert } from '../../component/customComponents/toastify';
 
 interface AssetDataType {
@@ -12,13 +13,19 @@ interface AssetDataType {
 
 const Assets = () => {
 
-  const { data } = useQuery(GETALLASSETS);
+  const { data, refetch } = useQuery(GETALLASSETS, {
+    fetchPolicy: "no-cache"
+  });
 
   const [selectedAssetId, setSelectedAssetId] = useState<any>();
 
   const { data: assetById } = useQuery(GETASSETBYID, { variables: { id: selectedAssetId } });
 
-  const [addAsset] = useMutation(ADDASSET);
+  const [addAsset, { loading }] = useMutation(ADDASSET, {
+    onCompleted() {
+      refetch();
+    }
+  });
 
   // console.log(assetById);
   const [filter, setFilter] = useState("");
@@ -44,6 +51,7 @@ const Assets = () => {
 
   const handleCloseAdd = () => {
     setOpenAddAsset(false);
+    
   }
 
   const handleChange = (e: any) => {
@@ -76,49 +84,53 @@ const Assets = () => {
       toastAlert('success', 'Asset Added Successfully');
     }
     catch (error) {
-      toastAlert('error', 'Asset Added Successfully');
+      toastAlert('error', 'Asset Adding Failed.');
     }
     handleCloseAdd();
   };
 
   return (
     <div className="usersContainer">
-      <h2 className="adminUsersHeading">List of All Assets</h2>
-      <div style={{ display: 'flex' }}>
-        <div className="formContent" style={{ marginBottom: '20px' }}>
-          <label className="userLabel"><i className="pi pi-filter" style={{ color: 'gray', marginRight: 10 }}></i></label>
-          <select name="assigned_status" className="userInput" onChange={handleChange} required>
-            <option value="">All Assets</option>
-            <option value="Available">Available Assets</option>
-            <option value="Assigned">Assigned Assets</option>
-          </select>
+      <Typography variant="h5" className="adminUsersHeading">List of All Assets</Typography>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
+        <div className="formContent" style={{ display: 'flex', alignItems: 'center', background: '#fff', padding: '10px', borderRadius: '10px', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
+          <FilterList style={{ color: "gray", marginRight: 10 }} />
+          <Select name="assigned_status" className="userInput" onChange={handleChange} sx={{ minWidth: "150px", width: "max-content" }} displayEmpty>
+            <MenuItem value="">All Assets</MenuItem>
+            <MenuItem value="Available">Available Assets</MenuItem>
+            <MenuItem value="Assigned">Assigned Assets</MenuItem>
+          </Select>
         </div>
-        <label className="userLabel" onClick={handleOpenAdd}><i className="pi pi-plus-circle" style={{ color: 'gray', fontSize: 40, paddingLeft: 20, paddingTop: 22, cursor: 'pointer' }}></i></label>
+        <IconButton onClick={handleOpenAdd} sx={{ color: 'gray', fontSize: 40, marginLeft: 2 }}>
+          <AddCircleOutline sx={{ fontSize: 40 }} />
+        </IconButton>
       </div>
-      <table className="tableUsers">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Name</th>
-            <th>Condition</th>
-            <th>Assigned Status</th>
-            <th>assigned_to</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtering?.map((asset: any) => (
-            <tr key={asset.id}>
-              <td>{asset.type}</td>
-              <td>{asset.name}</td>
-              <td>{asset.condition}</td>
-              <td>{asset.assigned_status}</td>
-              <td>{asset?.assigned_to ?? "-"}</td>
-              <td><button onClick={() => handleOpen(asset.id)}><i className="pi pi-arrow-circle-down" style={{ color: 'whitesmoke' }}></i>  View</button></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TableContainer component={Paper} style={{ maxHeight: 500, overflowY: "auto" }}>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              {["Serial No", "Type", "Name", "Condition", "Assigned Status", "Assigned To", "Details"].map((header) => (
+                <TableCell key={header} sx={{ backgroundColor: "#1976d2", color: "white", fontWeight: "bold" }}>
+                  {header}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filtering?.map((asset: any) => (
+              <TableRow key={asset.id} hover>
+                <TableCell>{asset.serial_no}</TableCell>
+                <TableCell>{asset.type}</TableCell>
+                <TableCell>{asset.name}</TableCell>
+                <TableCell>{asset.condition}</TableCell>
+                <TableCell>{asset.assigned_status}</TableCell>
+                <TableCell>{asset.assigned_to || "-"}</TableCell>
+                <TableCell><button onClick={() => handleOpen(asset.id)} className="viewButton"><i className="pi pi-arrow-circle-down" style={{ color: "whitesmoke" }}></i> View</button></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle className="dialog-title">Asset Details for {assetById?.asset?.name}</DialogTitle>
         <DialogContent className="dialog-content" style={{ width: '400px' }}>
@@ -163,7 +175,7 @@ const Assets = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAdd} color="primary">Cancel</Button>
-          <Button onClick={() => { handleAddSubmit(); }} color="primary" variant="contained">Submit</Button>
+          <Button onClick={() => { handleAddSubmit(); }} color="primary" variant="contained" disabled={loading}>Submit</Button>
         </DialogActions>
       </Dialog>
     </div>

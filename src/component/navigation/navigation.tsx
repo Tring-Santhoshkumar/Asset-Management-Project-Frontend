@@ -4,6 +4,7 @@ import DashboardAdmin from '../../pages/AdminPage/DashboardAdmin';
 import Users from '../../pages/UserPage/Users';
 import Assets from '../../pages/AdminPage/Assets';
 import AdminUsers from '../../pages/AdminPage/AdminUsers';
+import ChangePassword from '../../pages/AdminPage/ChangePassword';
 
 export const publicRoutes = [
     {
@@ -13,6 +14,10 @@ export const publicRoutes = [
     {
         path : "/login",
         element : <Login />
+    },
+    {
+        path : "/ChangePassword",
+        element : <ChangePassword />
     }
 ];
 

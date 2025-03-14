@@ -6,6 +6,7 @@ export const GETALLASSETS = gql`
             id
             type
             name
+            serial_no
             version
             condition
             assigned_status
@@ -21,6 +22,7 @@ export const GETASSETBYID = gql`
         name
         type
         version
+        serial_no
         specifications
         condition
         assigned_to
@@ -39,6 +41,7 @@ export const ASSIGNASSET = gql`
       id
       name
       type
+      serial_no
       assigned_to
       assigned_status
       assigned_date

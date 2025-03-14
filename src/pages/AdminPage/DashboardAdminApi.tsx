@@ -4,6 +4,7 @@ export const USERCHART = gql`
     query userChart{
         users{
             role
+            status
         }
     }
 `

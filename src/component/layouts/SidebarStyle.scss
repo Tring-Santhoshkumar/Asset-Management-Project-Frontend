@@ -1,16 +1,10 @@
-$primary-color: #1976d2;
-$secondary-color: #424242;
-$background-color: #ffffff;
-$text-color: #212121;
-$hover-color: #4799ea;
-
 .sideBar {
     width: 250px;
     height: 100vh;
     top: 0;
     left: 0;
     position: fixed;
-    background: $background-color;
+    background: #1976d2;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     color: #ffffff;
     padding: 15px;
@@ -34,16 +28,21 @@ $hover-color: #4799ea;
             display: flex;
             align-items: center;
             gap: 10px;
-            color: $text-color;
+            color: #ffffff;
 
             a {
-                width: 95%;
+                flex: 1;
                 text-decoration: none;
-                color: $text-color;
+                color: inherit;
             }
-
+        
             &:hover {
-                background-color: $hover-color;
+                background-color: white;
+                color: #212121;
+        
+                a {
+                    color: #212121;
+                }
             }
         }
     }

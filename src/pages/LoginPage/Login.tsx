@@ -31,8 +31,13 @@ const Login = () => {
               const decodedData : any = jwtDecode(token);
               localStorage.setItem("role", decodedData.role);
               if(decodedData.role == 'user') localStorage.setItem("userId",decodedData.id);
-              navigate(decodedData.role == "admin" ? "/admin/dashboard" : "/users/dashboard");
-              toastAlert('success','Login Successfull!!!');
+              if (decodedData.reset_password && decodedData.role == "user") {
+                navigate("/ChangePassword");
+                toastAlert('info','Change Password');
+              } else {
+                navigate(decodedData.role == "admin" ? "/admin/dashboard" : "/users/dashboard");
+                toastAlert('success','Login Successfull!!!');
+              }
             }
           }
           catch(error){

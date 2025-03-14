@@ -1,9 +1,9 @@
 import { useQuery, useMutation } from "@apollo/client";
 import { useState, useEffect } from "react";
-import { GETUSER, UPDATEUSER } from "./UsersApi";
+import { DELETEUSER, GETUSER, UPDATEUSER } from "./UsersApi";
 import { toastAlert } from "../../component/customComponents/toastify";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { ASSIGNASSET, GETALLASSETS, GETASSETBYID, REQUESTASSET } from "../AdminPage/AssetsApi";
 import { useForm } from "react-hook-form";
 
@@ -21,11 +21,13 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const { data: assetById } = useQuery(GETASSETBYID, { variables: { assigned_to: userId } });
 
-  console.log(assetById);
+  // console.log(assetById);
 
   const [assignAsset] = useMutation(ASSIGNASSET);
 
   const [requestAsset] = useMutation(REQUESTASSET);
+
+  const [deleteUser] = useMutation(DELETEUSER);
 
   const location = useLocation();
 
@@ -50,6 +52,8 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const [openRequest, setOpenRequest] = useState(false);
 
+  const [openDelete, setOpenDelete] = useState(false);
+
   const [selectedType, setSelectedType] = useState<string>("");
 
   const [selectedAssetId, setSelectedAssetId] = useState<string>("");
@@ -72,6 +76,14 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     setOpenRequest(false);
   }
 
+  const handleOpenDelete = () => {
+    setOpenDelete(true);
+  }
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false);
+  }
+
   const [assetDataById, setAssetDataById] = useState<{ asset: any[] }>({ asset: [] });
 
 
@@ -82,8 +94,6 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   }
 
   const onAssignAsset = async () => {
-    // console.log("Asset ID:", selectedAssetId);
-    // console.log("User ID:", userId);
     try {
       const res = await assignAsset({ variables: { id: selectedAssetId, assigned_to: userId } });
       toastAlert('success', "Asset Assigned Successfully!");
@@ -96,8 +106,8 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const onRequestAsset = async () => {
     try {
-      // const res = await requestAsset({ variables: { id: selectedAssetId, assigned_to: userId } });
-      // console.log("Mutation Response:", res);
+      const res = await requestAsset({ variables: { id: selectedAssetId } });
+      console.log("Mutation Response:", res);
       toastAlert('success', "Asset Requested Successfully,You'll be notified through mail!");
     }
     catch (error) {
@@ -105,6 +115,20 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
       toastAlert('error', "Asset Assigned Failed.");
     }
   };
+
+  const onDeleteUser = async () => {
+    try {
+      const res = await deleteUser({ variables: { id: userId } });
+      // console.log("Mutation Response:", res);
+      toastAlert('success', "User Deleted Successfull!");
+    }
+    catch (error) {
+      console.error("Mutation Error:", error);
+      toastAlert('error', "User deletion Failed.");
+    }
+    navigate(-1);
+    handleCloseDelete();
+}
 
   useEffect(() => {
     if (data?.user) {
@@ -162,7 +186,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
             {errors.dob && <p className="error">{errors.dob.message}</p>}
           </div>
           <div className="formContent">
-            <label className="userLabel">Gender :</label>
+            <label className="userLabel">Gender</label>
             <select {...register("gender", { required: "Gender is required" })} className="userInput" disabled={!editEnable}>
               <option value="">Select Gender</option>
               <option value="Male">Male</option>
@@ -171,7 +195,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
             </select>
           </div>
           <div className="formContent">
-            <label className="userLabel">Blood Group :</label>
+            <label className="userLabel">Blood Group</label>
             <select {...register("blood_group", { required: "Blood Group is required" })} className="userInput" disabled={!editEnable}>
               <option value="">Select Blood Group</option>
               <option value="A+">A+</option>
@@ -185,7 +209,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
             </select>
           </div>
           <div className="formContent">
-            <label className="userLabel">Martial Status :</label>
+            <label className="userLabel">Martial Status</label>
             <select {...register("marital_status", { required: "Marital Status is required" })} className="userInput" disabled={!editEnable}>
               <option value="">Select Martial Status</option>
               <option value="Single">Single</option>
@@ -195,44 +219,45 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
             </select>
           </div>
           <div className="formContent">
-            <label className="userLabel">Phone :</label>
+            <label className="userLabel">Phone</label>
             <input type="text" {...register("phone", { required: "Phone is required", pattern: { value: /^[0-9]{10}$/, message: "Must be a 10 Digit Valid Phone Number" }, })} className="userInput" disabled={!editEnable} />
             {errors.phone && <p className="error">{errors.phone.message}</p>}
           </div>
           <div className="formContent">
-            <label className="userLabel">Designation :</label>
+            <label className="userLabel">Designation</label>
             <input type="text" {...register("designation", { required: "Designation is required" })} className="userInput" disabled={!editEnable} />
           </div>
           <div className="formContent">
-            <label className="userLabel">Department :</label>
+            <label className="userLabel">Department</label>
             <input type="text" {...register("department", { required: "Department is required" })} className="userInput" disabled={!editEnable} />
           </div>
           <div className="formContent">
-            <label className="userLabel">City :</label>
+            <label className="userLabel">City</label>
             <input type="text" {...register("city", { required: "City is required" })} className="userInput" disabled={!editEnable} />
           </div>
           <div className="formContent">
-            <label className="userLabel">State :</label>
+            <label className="userLabel">State</label>
             <input type="text" {...register("state", { required: "State is required" })} className="userInput" disabled={!editEnable} />
           </div>
           <div className="formContent">
-            <label className="userLabel">Pin Code :</label>
+            <label className="userLabel">Pin Code</label>
             <input type="text" {...register("pin_code", { required: "Pin Code is required", pattern: { value: /^[0-9]{6}$/, message: "Must be a 6 digit Pin code" }, })} className="userInput" disabled={!editEnable} />
             {errors.pin_code && <p className="error">{errors.pin_code.message}</p>}
           </div>
           <div className="formContent">
-            <label className="userLabel">Country :</label>
+            <label className="userLabel">Country</label>
             <input type="text" {...register("country", { required: "Country is required" })} className="userInput" disabled={!editEnable} />
           </div>
           <div className="formContent fullWidth">
-            <label className="userLabel">Address:</label>
-            <textarea {...register("address", { required: "Address is required" })} className="userInput" disabled={!editEnable} />
+            <label className="userLabel">Address</label>
+            <textarea {...register("address", { required: "Address is required" })} className="userInput" disabled={!editEnable} style={{resize:'none'}}/>
           </div>
         </div>
         <div className="userButtons">
           {isAdmin ? (
             <><button type="button" className="userSubmit" onClick={handleOpen}>➕ Assign Asset</button>
-              <button type="button" className="userSubmit" onClick={() => navigate(-1)}>Cancel</button></>
+              <button type="button" className="userSubmit" onClick={() => navigate(-1)}>Cancel</button>
+              <button type="button" className="userSubmit" onClick={handleOpenDelete}>Delete</button></>
           ) : (
             <button type="button" className="userSubmit" onClick={handleOpenRequest}>📩 Request Asset</button>
           )}
@@ -240,8 +265,8 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           <button type="submit" className="userSubmit">Save</button>
 
           <Dialog open={open} onClose={handleClose}>
-            <DialogTitle className="dialog-title">Assign Asset for {data?.user?.name}</DialogTitle>
-            <DialogContent className="dialog-content">
+            <DialogTitle>Assign Asset for {data?.user?.name}</DialogTitle>
+            <DialogContent>
               <FormControl sx={{ m: 1, minWidth: 500 }}>
                 <InputLabel htmlFor="grouped-select">Device Type</InputLabel>
                 <Select value={selectedType} id="grouped-select" label="Grouping" onChange={(e) => setSelectedType(e.target.value)}>
@@ -252,7 +277,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
                 </Select>
               </FormControl>
             </DialogContent>
-            <DialogContent className="dialog-content">
+            <DialogContent>
               <FormControl sx={{ m: 1, minWidth: 500 }} disabled={!selectedType}>
                 <InputLabel htmlFor="grouped-select">Device Name</InputLabel>
                 <Select value={selectedAssetId} id="grouped-select" label="Grouping" onChange={(e) => setSelectedAssetId(e.target.value)}>
@@ -263,15 +288,15 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
                 </Select>
               </FormControl>
             </DialogContent>
-            <DialogActions className="dialog-actions">
+            <DialogActions>
               <Button onClick={handleClose} color="primary">Close</Button>
               <Button onClick={() => { handleClose(); onAssignAsset() }} color="success">Save</Button>
             </DialogActions>
           </Dialog>
 
           <Dialog open={openRequest} onClose={handleCloseRequest}>
-            <DialogTitle className="dialog-title">Request Asset</DialogTitle>
-            <DialogContent className="dialog-content">
+            <DialogTitle>Request Asset</DialogTitle>
+            <DialogContent>
               <FormControl sx={{ m: 1, minWidth: 500 }}>
                 <InputLabel htmlFor="grouped-select">Type</InputLabel>
                 <Select value={selectedType} id="grouped-select" label="Grouping" onChange={(e) => setSelectedType(e.target.value)}>
@@ -282,7 +307,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
                 </Select>
               </FormControl>
             </DialogContent>
-            <DialogContent className="dialog-content">
+            <DialogContent>
               <FormControl sx={{ m: 1, minWidth: 500 }} disabled={!selectedType}>
                 <InputLabel htmlFor="grouped-select">Name</InputLabel>
                 <Select value={selectedAssetId} id="grouped-select" label="Grouping" onChange={(e) => setSelectedAssetId(e.target.value)}>
@@ -293,9 +318,18 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
                 </Select>
               </FormControl>
             </DialogContent>
-            <DialogActions className="dialog-actions">
+            <DialogActions>
               <Button onClick={handleCloseRequest} color="primary">Close</Button>
               <Button onClick={() => { handleCloseRequest(); onRequestAsset(); }} color="success">Save</Button>
+            </DialogActions>
+          </Dialog>
+
+          <Dialog open={openDelete} onClose={handleCloseDelete}>
+            <DialogTitle><strong>Delete User</strong></DialogTitle>
+            <DialogContent style={{ width: "500px" }}><p>Are You sure want to delete the user?</p></DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDelete} color="primary">Cancel</Button>
+              <Button onClick={() => { onDeleteUser(); }} color="error" variant="contained">Delete</Button>
             </DialogActions>
           </Dialog>
         </div>

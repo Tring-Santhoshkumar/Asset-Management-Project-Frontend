@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { toastAlert } from '../customComponents/toastify';
+import { styled } from '@mui/material';
 
 const Sidebar = () => {
   const navigate = useNavigate();

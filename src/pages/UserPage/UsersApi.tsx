@@ -52,3 +52,10 @@ export const UPDATEUSER = gql`
     }
   }
 `
+
+
+export const DELETEUSER = gql`
+  mutation DeleteUser($id: ID!){
+    deleteUser(id: $id)
+  }
+`
