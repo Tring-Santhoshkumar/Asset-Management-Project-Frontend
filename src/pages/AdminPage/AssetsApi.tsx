@@ -3,15 +3,18 @@ import { gql } from "@apollo/client";
 export const GETALLASSETS = gql`
     query getAllAssets {
         allAssets {
-            id
-            type
-            name
-            serial_no
-            version
-            condition
-            assigned_status
-            assigned_to
-        }
+          id
+          name
+          type
+          version
+          serial_no
+          specifications
+          condition
+          assigned_to
+          assigned_status
+          assigned_date
+          return_date
+        } 
     }
 `
 
@@ -19,6 +22,7 @@ export const GETALLASSETS = gql`
 export const GETASSETBYID = gql`
     query getAssetById($id: ID!){
       asset(id: $id){
+        id
         name
         type
         version
@@ -62,4 +66,23 @@ export const ADDASSET = gql`
                     $assigned_date: String,$return_date: String){
     addAsset(type: $type, serial_no: $serial_no, name: $name, version: $version, specifications: $specifications, condition: $condition,assigned_to: $assigned_to, assigned_status: $assigned_status, assigned_date: $assigned_date, return_date: $return_date)
   }
+`
+
+
+export const GETASSETBYUSERID = gql`
+  query GetAssetByUserId($assigned_to: ID!){
+      assetByUserId(assigned_to: $assigned_to){
+        id
+        name
+        type
+        version
+        serial_no
+        specifications
+        condition
+        assigned_to
+        assigned_status
+        assigned_date
+        return_date
+      }
+    }
 `

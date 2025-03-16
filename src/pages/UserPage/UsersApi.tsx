@@ -59,3 +59,10 @@ export const DELETEUSER = gql`
     deleteUser(id: $id)
   }
 `
+
+
+export const DEASSIGNASSET = gql`
+  mutation DeAssignAsset($id: ID!){
+    deAssignAsset(id: $id)
+  }
+`

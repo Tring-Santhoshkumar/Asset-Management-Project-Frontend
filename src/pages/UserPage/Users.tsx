@@ -1,11 +1,12 @@
 import { useQuery, useMutation } from "@apollo/client";
 import { useState, useEffect } from "react";
-import { DELETEUSER, GETUSER, UPDATEUSER } from "./UsersApi";
+import { DEASSIGNASSET, DELETEUSER, GETUSER, UPDATEUSER } from "./UsersApi";
 import { toastAlert } from "../../component/customComponents/toastify";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, ToggleButton, ToggleButtonGroup } from "@mui/material";
-import { ASSIGNASSET, GETALLASSETS, GETASSETBYID, REQUESTASSET } from "../AdminPage/AssetsApi";
+import { Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { ASSIGNASSET, GETALLASSETS, GETASSETBYID, GETASSETBYUSERID, REQUESTASSET } from "../AdminPage/AssetsApi";
 import { useForm } from "react-hook-form";
+import { CREATE_NOTIFICATION } from "../AdminPage/NotificationsApi";
 
 interface UserIdProp {
   userId: String
@@ -15,13 +16,19 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   // const { data } = useQuery(GETUSER, { variables: { id: userId } });
 
-  const { data, loading, error, refetch } = useQuery(GETUSER, { variables: { id: userId } });
+  const location = useLocation();
+
+  const isAdmin = location.pathname.startsWith("/admin/users");
+
+  const selectedUserId = localStorage.getItem('selectedUserId');
+
+  const { data, loading, error, refetch } = useQuery(GETUSER, { variables: { id: userId }, fetchPolicy: "no-cache" });
 
   const { data: assetData } = useQuery(GETALLASSETS);
 
-  const { data: assetById } = useQuery(GETASSETBYID, { variables: { assigned_to: userId } });
+  const { data: assetByUserId, refetch: refetchAssetByUser } = useQuery(GETASSETBYUSERID, { variables: { assigned_to: userId }, fetchPolicy: "no-cache" });
 
-  // console.log(assetById);
+  const [createNotification] = useMutation(CREATE_NOTIFICATION);
 
   const [assignAsset] = useMutation(ASSIGNASSET);
 
@@ -29,11 +36,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const [deleteUser] = useMutation(DELETEUSER);
 
-  const location = useLocation();
-
-  const isAdmin = location.pathname.startsWith("/admin/users");
-
-  const selectedUserId = localStorage.getItem('selectedUserId');
+  const [deAssignAsset] = useMutation(DEASSIGNASSET);
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
     defaultValues: {
@@ -53,6 +56,8 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   const [openRequest, setOpenRequest] = useState(false);
 
   const [openDelete, setOpenDelete] = useState(false);
+
+  const [openAssetStatus, setOpenAssetStatus] = useState(false);
 
   const [selectedType, setSelectedType] = useState<string>("");
 
@@ -84,19 +89,42 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     setOpenDelete(false);
   }
 
-  const [assetDataById, setAssetDataById] = useState<{ asset: any[] }>({ asset: [] });
+  const [assetStatus,setAssetStatus] = useState();
+
+  useEffect(() => {
+    if (assetStatus) {
+      handleOpenAssetStatus();
+    }
+  }, [assetStatus]);
+
+  const handleOpenAssetStatus = () => {
+    setOpenAssetStatus(true);
+    // console.log('Asset-',assetStatus);
+  }
+
+  const handleCloseAssetStatus = () => {
+    setOpenAssetStatus(false);
+  }
+
+  const [assetDataById, setAssetDataById] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (assetByUserId && assetByUserId.assetByUserId) {
+      const assets = Array.isArray(assetByUserId.assetByUserId) ? assetByUserId.assetByUserId : assetByUserId.assetByUserId ? [assetByUserId.assetByUserId] : [];
+      setAssetDataById(assets);
+    }
+  }, [assetByUserId]);
 
 
   const filtering = assetData?.allAssets?.filter((asset: any) => asset.type == selectedType && asset.assigned_status == "Available");
 
-  const assetDisplaying = () => {
-    console.log("DATASS ", assetDataById);
-  }
-
   const onAssignAsset = async () => {
     try {
-      const res = await assignAsset({ variables: { id: selectedAssetId, assigned_to: userId } });
+      const updatedUserId = localStorage.getItem("selectedUserId") || userId;
+      const res = await assignAsset({ variables: { id: selectedAssetId, assigned_to: updatedUserId } });
+      // console.log('RESULT : ',res);
       toastAlert('success', "Asset Assigned Successfully!");
+      await refetchAssetByUser();
     }
     catch (error) {
       console.error("Mutation Error:", error);
@@ -107,7 +135,18 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   const onRequestAsset = async () => {
     try {
       const res = await requestAsset({ variables: { id: selectedAssetId } });
-      console.log("Mutation Response:", res);
+      // console.log("Mutation Response:", res);
+      const selectedUser = data?.user?.name;
+      const selectedAsset = assetData?.allAssets?.find((asset: any) => asset.id === selectedAssetId);
+      const msg = `User ${selectedUser} requested asset ${selectedAsset.name}.`
+      // console.log('Filter : ',selectedUser,selectedAsset.name,msg);
+      await createNotification({
+        variables: {
+          user_id: userId,
+          asset_id: selectedAssetId,
+          message: msg,
+        }
+      });
       toastAlert('success', "Asset Requested Successfully,You'll be notified through mail!");
     }
     catch (error) {
@@ -128,21 +167,48 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     }
     navigate(-1);
     handleCloseDelete();
-}
+  }
+
+  const onDeleteAssetForUser = async () => {
+    try{
+      const res = await deAssignAsset({ variables: { id : assetStatus}});
+      console.log("De",res);
+      toastAlert('success','Asset De-assigned Successfully!');
+    }
+    catch(error : any){
+      // console.log(error);
+      toastAlert('error',error);
+    }
+    navigate(-1);
+    handleCloseAssetStatus();
+  }
 
   useEffect(() => {
-    if (data?.user) {
-      reset(data.user);
+    const updatedUserId = localStorage.getItem("selectedUserId") || localStorage.getItem("userId");
+
+    if (updatedUserId) {
+      refetch({ id: updatedUserId }).then(({ data }) => {
+        if (data?.user) {
+          reset(data.user);
+        }
+      });
     }
-  }, [data, reset]);
+  }, [userId, refetch, reset, data]);
+
+  // useEffect(() => {
+  //   if (data?.user) {
+  //     refetch();
+  //     reset(data.user);
+  //   }
+  // }, [data, reset]);
 
   const onSubmit = async (formData: any) => {
     try {
       const { data } = await updateUser({
         variables: {
-          id: userId, name: formData.name, email: formData.email, dob: formData.dob, gender: formData.gender,
-          blood_group: formData.blood_group, marital_status: formData.marital_status, phone: formData.phone, address: formData.address, designation: formData.designation,
-          department: formData.department, city: formData.city, state: formData.state, pin_code: formData.pin_code, country: formData.country, profile_pic: formData.profile_pic || "",
+          id: userId || null, name: formData.name || null, email: formData.email || null, dob: formData.dob || null, gender: formData.gender || null,
+          blood_group: formData.blood_group || null, marital_status: formData.marital_status || null, phone: formData.phone || null, address: formData.address || null, designation: formData.designation || null,
+          department: formData.department || null, city: formData.city || null, state: formData.state || null, pin_code: formData.pin_code || null, country: formData.country || null, profile_pic: formData.profile_pic || null,
         }
       });
       toastAlert('success', 'Saved Successfully!');
@@ -157,16 +223,19 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     <div className="userDashboard">
       <h2 className="userHeading">User Dashboard</h2>
 
-      <ToggleButtonGroup
-        value={selectedView}
-        exclusive
-        onChange={(event, newView) => { setSelectedView(newView); setAssetDataById(assetById); console.log("assets : ", assetDataById); }}
+      <ToggleButtonGroup value={selectedView} exclusive onChange={(event, newView) => {
+        if (newView !== null) {
+          setSelectedView(newView);
+          refetchAssetByUser();
+        }
+      }}
         aria-label="user view toggle"
         style={{ marginBottom: "20px" }}
       >
         <ToggleButton value="profile">Profile</ToggleButton>
         <ToggleButton value="assets">Assets</ToggleButton>
       </ToggleButtonGroup>
+
 
       {selectedView === "profile" && (<form onSubmit={handleSubmit(onSubmit)} className="userForm">
         <div className="formMain">
@@ -250,7 +319,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           </div>
           <div className="formContent fullWidth">
             <label className="userLabel">Address</label>
-            <textarea {...register("address", { required: "Address is required" })} className="userInput" disabled={!editEnable} style={{resize:'none'}}/>
+            <textarea {...register("address", { required: "Address is required" })} className="userInput" disabled={!editEnable} style={{ resize: 'none' }} />
           </div>
         </div>
         <div className="userButtons">
@@ -334,29 +403,34 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           </Dialog>
         </div>
       </form>)}
-      {/* {selectedView === "assets" && (
+      {selectedView === "assets" && (
         <div className="assetsContainer">
-          {selectedView === "assets" && (
-            <>
-              {console.log("Asset Data:", assetDataById, "Asset Length:", assetDataById?.asset?.length)}
-              <div className="assetsContainer">
-                {
-                  assetDataById.asset.map((asset: any) => (
-                    <Card key={asset.id} sx={{ minWidth: 275, marginBottom: 2 }}>
-                      <CardContent>
-                        <Typography variant="h5" component="div">{asset.name}</Typography>
-                        <Typography color="text.secondary">Type: {asset.type}</Typography>
-                        <Typography color="text.secondary">Version: {asset.version}</Typography>
-                        <Typography color="text.secondary">Status: {asset.assigned_status}</Typography>
-                      </CardContent>
-                    </Card>
-                  ))
-                }
-              </div>
-            </>
+          {assetDataById.length === 0 ? (
+            <p>No assets assigned to this user.</p>
+          ) : (
+            assetDataById.map((asset: any) => (
+              <Card key={asset.id} sx={{ minWidth: 275, marginBottom: 2, cursor: 'pointer' }} onClick={() =>{ setAssetStatus(asset.id);}}>
+                <CardContent>
+                  <Typography variant="h4" component="div">{asset.name}</Typography>
+                  <Typography variant="h6" component="div">Serial_No : {asset.serial_no}</Typography>
+                  <Typography color="text.secondary">Type : {asset.type}</Typography>
+                  <Typography color="text.secondary">Version : {asset.version}</Typography>
+                  <Typography color="text.secondary">Specifications : {asset.specifications}</Typography>
+                  <Typography color="text.secondary">Condition : {asset.condition}</Typography>
+                </CardContent>
+              </Card>
+            ))
           )}
         </div>
-      )} */}
+      )}
+      <Dialog open={openAssetStatus} onClose={handleCloseAssetStatus}>
+        <DialogTitle><strong>Set Asset as Available</strong></DialogTitle>
+        <DialogContent><p>Are You Sure want to Set the Asset as available?</p></DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAssetStatus} color="secondary">Cancel</Button>
+          <Button onClick={onDeleteAssetForUser} color="primary">Set Available</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }
