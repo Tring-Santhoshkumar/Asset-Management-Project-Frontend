@@ -1,16 +1,16 @@
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import { Badge, Button, Card, CardContent, IconButton, Menu, MenuItem, Typography } from "@mui/material";
+import { Badge, Button, Card, CardContent, CircularProgress, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import { useMutation, useQuery } from "@apollo/client";
 import { USERCHART } from "./DashboardAdminApi";
 import './DashboardAdminStyle.scss'
 import { GETALLASSETS } from "./AssetsApi";
 import { GETNOTIFICATIONS, READNOTIFICATIONS } from "./NotificationsApi";
-import React, { useState } from "react";
+import { useState } from "react";
 import { toastAlert } from "../../component/customComponents/toastify";
 
 const COLORS = ["#1976d2", "#64B5F6","#FFBB28", "#FF8042"];
-const COLORS2 = ["#FFBB28", "#FF8042"];
+const COLORS2 = ["#FFBB28", "#FF8042","#EE2054"];
 
 const DashboardAdmin = () => {
 
@@ -21,18 +21,24 @@ const DashboardAdmin = () => {
   const statusChart = new Map();
   const genderChart = new Map();
   const assetsChart = new Map();
+  const totalAssetsChart = new Map();
+  const typeAssetsChart = new Map();
   userChart?.users.forEach((user: { role: any; status: any, gender: any }) => {
     roleChart.set(user.role, (roleChart.get(user.role) || 0) + 1);
     statusChart.set(user.status, (statusChart.get(user.status) || 0) + 1);
     genderChart.set(user.gender, (genderChart.get(user.gender) || 0) + 1);
   });
-  assetChart?.allAssets.forEach((asset: {assigned_status: any}) => {
+  assetChart?.allAssets.forEach((asset: {assigned_status: any, condition: any, type: any}) => {
     assetsChart.set(asset.assigned_status, (assetsChart.get(asset.assigned_status) || 0) + 1);
+    totalAssetsChart.set(asset.condition, (totalAssetsChart.get(asset.condition) || 0) + 1);
+    typeAssetsChart.set(asset.type,(typeAssetsChart.get(asset.type) || 0) + 1);
   })
   const roleDataChart = Array.from(roleChart, ([name, value]) => ({ name, value }));
   const statusDataChart = Array.from(statusChart, ([name, value]) => ({ name, value }));
   const genderDataChart = Array.from(genderChart, ([name, value]) => ({ name, value }));
-  // const assetDataChart = Array.from(assetChart, ([name, value]) => ({ name, value }));
+  const assetDataChart = Array.from(assetsChart, ([name, value]) => ({ name, value }));
+  const assetTotalChart = Array.from(totalAssetsChart, ([name ,value]) => ({ name, value }));
+  const assetTypeChart = Array.from(typeAssetsChart, ([name, value]) => ({ name, value }));
 
   const { data: allNotifications, refetch } = useQuery(GETNOTIFICATIONS);
   const [readNotifications] = useMutation(READNOTIFICATIONS);
@@ -44,7 +50,11 @@ const DashboardAdmin = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const filterNotifications = allNotifications?.getNotifications?.filter((notification:any) => notification.is_read == false);
+
+  const [loader, setLoader] = useState(false);
   const handleNotificationClick = async (id: Number, choice: boolean) => {
+    setLoader(true);
     try {
       await readNotifications({ variables: { id, choice } });
       refetch();
@@ -52,27 +62,27 @@ const DashboardAdmin = () => {
     } catch (error: any) {
       toastAlert('error',error);
     }
+    finally{
+      setLoader(false);
+    }
     handleClose();
   }
-
-
   return (
     <Card sx={{ maxWidth: "100%", padding: "20px", backgroundColor: "#f8f9fa" }}>
       <IconButton color="inherit" onClick={handleClick} style={{marginLeft:'95%'}}>
-        <Badge badgeContent={allNotifications?.getNotifications.length || 0} color="error"><NotificationsIcon /></Badge>
+        <Badge badgeContent={filterNotifications?.length || 0} color="error"><NotificationsIcon /></Badge>
       </IconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        {/* {console.log(allNotifications?.getNotifications.is_read)}; */}
-        {allNotifications?.getNotifications?.length === 0 && allNotifications?.getNotifications.is_read == true ? (
+        {filterNotifications?.length === 0 ? (
           <MenuItem>No notifications</MenuItem>
         ) : (
-          allNotifications?.getNotifications.map((notification : any) => (
+          filterNotifications?.map((notification : any) => (
             <MenuItem key={notification.id}>
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <span>{notification.message}</span>
                 <div>
-                  <Button size="small" color="success" onClick={() => handleNotificationClick(notification.id, true)}>Approve</Button>
-                  <Button size="small" color="error" onClick={() => handleNotificationClick(notification.id, false)}>Reject</Button>
+                  <Button size="small" color="success" disabled={loader} onClick={() => handleNotificationClick(notification.id, true)}>{loader ? <CircularProgress size={24} color="inherit"/> : "Approve"}</Button>
+                  <Button size="small" color="error" disabled={loader} onClick={() => handleNotificationClick(notification.id, false)}>{loader ? <CircularProgress size={24} color="inherit"/> : "Reject"}</Button>
                 </div>
               </div>
             </MenuItem>
@@ -136,47 +146,47 @@ const DashboardAdmin = () => {
           </PieChart>
         </div>
         <div className="chartContainer">
-          <Typography variant="h6" align="center">User Status</Typography>
+          <Typography variant="h6" align="center">Asset Assigned Status</Typography>
           <PieChart width={320} height={340}>
-            <Pie data={statusDataChart} cx={150} cy={170} innerRadius={55} outerRadius={80} fill="#8884d8" paddingAngle={5} dataKey="value">
-              {statusDataChart.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <Pie data={assetDataChart} cx={150} cy={170} innerRadius={55} outerRadius={80} fill="#8884d8" paddingAngle={5} dataKey="value">
+              {assetDataChart.map((_, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS2[index % COLORS2.length]} />
               ))}
             </Pie>
             <Tooltip />
             <Legend formatter={(value) => {
-              const total: any = statusDataChart.find((item) => item.name === value);
-              return `${value.charAt(0).toUpperCase()}${value.slice(1)} users - (${total?.value || 0})`;
+              const total: any = assetDataChart.find((item) => item.name === value);
+              return `${value.charAt(0).toUpperCase()}${value.slice(1)} assets - (${total?.value || 0})`;
             }} />
           </PieChart>
         </div>
         <div className="chartContainer">
-          <Typography variant="h6" align="center">User Status</Typography>
+          <Typography variant="h6" align="center">Asset Condition Status</Typography>
           <PieChart width={320} height={340}>
-            <Pie data={statusDataChart} cx={150} cy={170} innerRadius={55} outerRadius={80} fill="#8884d8" paddingAngle={5} dataKey="value">
-              {statusDataChart.map((_, index) => (
+            <Pie data={assetTotalChart} cx={150} cy={170} innerRadius={55} outerRadius={80} fill="#8884d8" paddingAngle={5} dataKey="value">
+              {assetTotalChart.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
             <Tooltip />
             <Legend formatter={(value) => {
-              const status: any = statusDataChart.find((item) => item.name === value);
-              return `${value.charAt(0).toUpperCase()}${value.slice(1)} users - (${status?.value || 0})`;
+              const total: any = assetTotalChart.find((item) => item.name === value);
+              return `${value.charAt(0).toUpperCase()}${value.slice(1)} condition assets - (${total?.value || 0})`;
             }} />
           </PieChart>
         </div>
         <div className="chartContainer">
-          <Typography variant="h6" align="center">User Status</Typography>
+          <Typography variant="h6" align="center">Asset Type Status</Typography>
           <PieChart width={320} height={340}>
-            <Pie data={statusDataChart} cx={150} cy={170} innerRadius={55} outerRadius={80} fill="#8884d8" paddingAngle={5} dataKey="value">
-              {statusDataChart.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <Pie data={assetTypeChart} cx={150} cy={170} innerRadius={55} outerRadius={80} fill="#8884d8" paddingAngle={5} dataKey="value">
+              {assetTypeChart.map((_, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS2[index % COLORS2.length]} />
               ))}
             </Pie>
             <Tooltip />
             <Legend formatter={(value) => {
-              const status: any = statusDataChart.find((item) => item.name === value);
-              return `${value.charAt(0).toUpperCase()}${value.slice(1)} users - (${status?.value || 0})`;
+              const type: any = assetTypeChart.find((item) => item.name === value);
+              return `${value.charAt(0).toUpperCase()}${value.slice(1)} - (${type?.value || 0})`;
             }} />
           </PieChart>
         </div>

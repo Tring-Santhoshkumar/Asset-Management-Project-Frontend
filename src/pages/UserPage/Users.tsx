@@ -3,10 +3,12 @@ import { useState, useEffect } from "react";
 import { DEASSIGNASSET, DELETEUSER, GETUSER, UPDATEUSER } from "./UsersApi";
 import { toastAlert } from "../../component/customComponents/toastify";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { Badge, Box, Button, Card, CardActionArea, CardContent, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, Menu, MenuItem, Select, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import DevicesIcon from "@mui/icons-material/Devices";
 import { ASSIGNASSET, GETALLASSETS, GETASSETBYID, GETASSETBYUSERID, REQUESTASSET } from "../AdminPage/AssetsApi";
 import { useForm } from "react-hook-form";
-import { CREATE_NOTIFICATION } from "../AdminPage/NotificationsApi";
+import { CREATE_NOTIFICATION, GETNOTIFICATIONSBYID } from "../AdminPage/NotificationsApi";
 
 interface UserIdProp {
   userId: String
@@ -89,7 +91,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     setOpenDelete(false);
   }
 
-  const [assetStatus,setAssetStatus] = useState();
+  const [assetStatus, setAssetStatus] = useState();
 
   useEffect(() => {
     if (assetStatus) {
@@ -118,7 +120,10 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const filtering = assetData?.allAssets?.filter((asset: any) => asset.type == selectedType && asset.assigned_status == "Available");
 
+  const [assignLoader, setAssignLoader] = useState(false);
+
   const onAssignAsset = async () => {
+    setAssignLoader(true);
     try {
       const updatedUserId = localStorage.getItem("selectedUserId") || userId;
       const res = await assignAsset({ variables: { id: selectedAssetId, assigned_to: updatedUserId } });
@@ -130,6 +135,10 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
       console.error("Mutation Error:", error);
       toastAlert('error', "Asset Assigned Failed.");
     }
+    finally {
+      setAssignLoader(false);
+    }
+    handleClose();
   };
 
   const onRequestAsset = async () => {
@@ -170,14 +179,14 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   }
 
   const onDeleteAssetForUser = async () => {
-    try{
-      const res = await deAssignAsset({ variables: { id : assetStatus}});
-      console.log("De",res);
-      toastAlert('success','Asset De-assigned Successfully!');
+    try {
+      const res = await deAssignAsset({ variables: { id: assetStatus } });
+      console.log("De", res);
+      toastAlert('success', 'Asset De-assigned Successfully!');
     }
-    catch(error : any){
+    catch (error: any) {
       // console.log(error);
-      toastAlert('error',error);
+      toastAlert('error', error);
     }
     navigate(-1);
     handleCloseAssetStatus();
@@ -219,9 +228,37 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     }
   };
 
+  const { data: getNotifications } = useQuery(GETNOTIFICATIONSBYID, { variables: { user_id: userId } });
+  const [anchorEl, setAnchorEl] = useState<any>(null);
+  const openNotifications = Boolean(anchorEl);
+  const handleClickNotifications = (e: any) => {
+    setAnchorEl(e.currentTarget);
+  };
+  const handleCloseNotifications = () => {
+    setAnchorEl(null);
+  };
+
   return (
     <div className="userDashboard">
-      <h2 className="userHeading">User Dashboard</h2>
+      <h2 className="userHeading">User Dashboard
+        <IconButton color="inherit" onClick={handleClickNotifications} style={{ marginLeft: '95%' }}>
+          <Badge badgeContent={getNotifications?.getNotificationsById?.length || 0} color="error"><NotificationsIcon /></Badge>
+        </IconButton>
+      </h2>
+      <Menu anchorEl={anchorEl} open={openNotifications} onClose={handleCloseNotifications}>
+        {getNotifications?.getNotificationsById?.length === 0 ? (
+          <MenuItem>No notifications</MenuItem>
+        ) : (
+          getNotifications?.getNotificationsById?.map((notification: any) => (
+            <MenuItem key={notification.id} sx={{ color: notification.is_read == true ? 'green' : 'red' }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span>Your Request : {notification.message}</span>
+              </div>
+              {/* <Button size="small" color="primary" onClick={() => handleCloseNotifications()}>Cancel</Button> */}
+            </MenuItem>
+          ))
+        )}
+      </Menu>
 
       <ToggleButtonGroup value={selectedView} exclusive onChange={(event, newView) => {
         if (newView !== null) {
@@ -241,18 +278,18 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
         <div className="formMain">
           <div className="formContent">
             <label className="userLabel">Name<span style={{ color: 'red', background: 'none' }}>*</span></label>
-            <input type="text" {...register("name", { required: "Name is required" })} className="userInput" disabled={!editEnable} />
-            {errors.name && <p className="error">{errors.name.message}</p>}
+            <input type="text" {...register("name", { required: "Name is required", minLength: { value: 3, message: "Name must be at least 3 characters" } })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("name", e.target.value.trim())}/>
+            {errors.name && <p className="formError">{errors.name.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Email<span style={{ color: 'red', background: 'none' }}>*</span></label>
-            <input type="email" {...register("email", { required: "Email is required" })} className="userInput" disabled={!editEnable} />
-            {errors.email && <p className="error">{errors.email.message}</p>}
+            <input type="email" {...register("email", { required: "Email is required", pattern : { value: /^[a-zA-Z0-9.]+@+[A-Za-z]+\.+com$/, message: 'Email must be valid' } })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("email", e.target.value.trim())}/>
+            {errors.email && <p className="formError">{errors.email.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Date of Birth</label>
-            <input type="date" {...register("dob", { required: "Date of Birth is required" })} className="userInput" disabled={!editEnable} />
-            {errors.dob && <p className="error">{errors.dob.message}</p>}
+            <input type="date" {...register("dob", { required: "Date of Birth is required",validate: (value) => { const selectedDate = new Date(value); const today = new Date(); return selectedDate <= today || "Date of Birth selection is invalid" }, })} className="userInput" disabled={!editEnable} />
+            {errors.dob && <p className="formError">{errors.dob.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Gender</label>
@@ -262,6 +299,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
+            {errors.gender && <p className="formError">{errors.gender.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Blood Group</label>
@@ -276,6 +314,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
               <option value="O+">O+</option>
               <option value="O-">O-</option>
             </select>
+            {errors.blood_group && <p className="formError">{errors.blood_group.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Martial Status</label>
@@ -286,40 +325,47 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
               <option value="Widow">Widow</option>
               <option value="Divorcee">Divorcee</option>
             </select>
+            {errors.marital_status && <p className="formError">{errors.marital_status.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Phone</label>
-            <input type="text" {...register("phone", { required: "Phone is required", pattern: { value: /^[0-9]{10}$/, message: "Must be a 10 Digit Valid Phone Number" }, })} className="userInput" disabled={!editEnable} />
-            {errors.phone && <p className="error">{errors.phone.message}</p>}
+            <input type="text" {...register("phone", { required: "Phone is required",validate: (value) => value !== "0000000000" || "Phone number cannot be all zeros", pattern: { value: /^[0-9]{10}$/, message: "Must be a 10 Digit Valid Phone Number" }, })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("phone", e.target.value.trim())}/>
+            {errors.phone && <p className="formError">{errors.phone.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Designation</label>
-            <input type="text" {...register("designation", { required: "Designation is required" })} className="userInput" disabled={!editEnable} />
+            <input type="text" {...register("designation", { required: "Designation is required", minLength: { value: 2, message: "Designation must be at least 2 characters" } })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("designation", e.target.value.trim())}/>
+            {errors.designation && <p className="formError">{errors.designation.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Department</label>
-            <input type="text" {...register("department", { required: "Department is required" })} className="userInput" disabled={!editEnable} />
+            <input type="text" {...register("department", { required: "Department is required", minLength: { value: 2, message: "Department must be at least 2 characters" } })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("department", e.target.value.trim())}/>
+            {errors.department && <p className="formError">{errors.department.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">City</label>
-            <input type="text" {...register("city", { required: "City is required" })} className="userInput" disabled={!editEnable} />
+            <input type="text" {...register("city", { required: "City is required", minLength: { value: 2, message: "City must be at least 2 characters"}})} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("city", e.target.value.trim())}/>
+            {errors.city && <p className="formError">{errors.city.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">State</label>
-            <input type="text" {...register("state", { required: "State is required" })} className="userInput" disabled={!editEnable} />
+            <input type="text" {...register("state", { required: "State is required", minLength: { value: 2, message: "State must be at least 2 characters" }})} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("state", e.target.value.trim())}/>
+            {errors.state && <p className="formError">{errors.state.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Pin Code</label>
-            <input type="text" {...register("pin_code", { required: "Pin Code is required", pattern: { value: /^[0-9]{6}$/, message: "Must be a 6 digit Pin code" }, })} className="userInput" disabled={!editEnable} />
-            {errors.pin_code && <p className="error">{errors.pin_code.message}</p>}
+            <input type="text" {...register("pin_code", { required: "Pin Code is required", pattern: { value: /^[0-9]{6}$/, message: "Must be a 6 digit Pin code" } })} className="userInput" disabled={!editEnable} />
+            {errors.pin_code && <p className="formError">{errors.pin_code.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Country</label>
-            <input type="text" {...register("country", { required: "Country is required" })} className="userInput" disabled={!editEnable} />
+            <input type="text" {...register("country", { required: "Country is required", minLength: { value: 2, message: "Country must be at least 2 characters" } })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("country", e.target.value.trim())}/>
+            {errors.country && <p className="formError">{errors.country.message}</p>}
           </div>
           <div className="formContent fullWidth">
             <label className="userLabel">Address</label>
-            <textarea {...register("address", { required: "Address is required" })} className="userInput" disabled={!editEnable} style={{ resize: 'none' }} />
+            <textarea {...register("address", { required: "Address is required", minLength: { value: 5, message: "Address must be atleast 5 charactes"} })} className="userInput" disabled={!editEnable} style={{ resize: 'none' }}  onBlur={(e) => setValue("address", e.target.value.trim())}/>
+            {errors.address && <p className="formError">{errors.address.message}</p>}
           </div>
         </div>
         <div className="userButtons">
@@ -359,7 +405,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
             </DialogContent>
             <DialogActions>
               <Button onClick={handleClose} color="primary">Close</Button>
-              <Button onClick={() => { handleClose(); onAssignAsset() }} color="success">Save</Button>
+              <Button onClick={() => { onAssignAsset() }} color="success" disabled={assignLoader}>{assignLoader ? <CircularProgress size={24} color="inherit" /> : 'Save'}</Button>
             </DialogActions>
           </Dialog>
 
@@ -408,18 +454,28 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           {assetDataById.length === 0 ? (
             <p>No assets assigned to this user.</p>
           ) : (
-            assetDataById.map((asset: any) => (
-              <Card key={asset.id} sx={{ minWidth: 275, marginBottom: 2, cursor: 'pointer' }} onClick={() =>{ setAssetStatus(asset.id);}}>
-                <CardContent>
-                  <Typography variant="h4" component="div">{asset.name}</Typography>
-                  <Typography variant="h6" component="div">Serial_No : {asset.serial_no}</Typography>
-                  <Typography color="text.secondary">Type : {asset.type}</Typography>
-                  <Typography color="text.secondary">Version : {asset.version}</Typography>
-                  <Typography color="text.secondary">Specifications : {asset.specifications}</Typography>
-                  <Typography color="text.secondary">Condition : {asset.condition}</Typography>
-                </CardContent>
-              </Card>
-            ))
+            <div style={{ display: "grid", padding: "20px", gridTemplateColumns: "repeat(3, 1fr)", gap: "30px" }}>
+              {assetDataById.map((asset: any) => (
+                <Card key={asset.id} sx={{ my: 2, borderRadius: 5,border:'2px solid #1976d2', cursor: "pointer", boxShadow: 3, transition: "0.3s", height: "300px", "&:hover": { transform: "scale(1.05)", boxShadow: 6 },}} onClick={() => setAssetStatus(asset.id)}>
+                  <CardActionArea sx={{ padding: 2, height:'100%' }}>
+                    <CardContent>
+                      <Box display="flex" alignItems="center" gap='1' mb='1'>
+                        <DevicesIcon color="primary" fontSize="medium"/>
+                        <Typography padding={1} fontWeight="bolder">{asset.name}</Typography>
+                      </Box>
+                      <Typography variant="body1" color="text.primary"><strong>Serial No:</strong> {asset.serial_no}</Typography>
+                      <Divider sx={{ my: 2 }} />
+                      <Typography variant="body2" color="text.secondary"><strong>Type:</strong> {asset.type}</Typography>
+                      <Typography variant="body2" color="text.secondary"><strong>Version:</strong> {asset.version}</Typography>
+                      <Typography variant="body2" color="text.secondary"><strong>Specifications:</strong> {asset.specifications}</Typography>
+                      <Typography variant="body2" color="text.secondary"><strong>Condition:</strong> {asset.condition}</Typography>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              ))}
+            </div>
+
+            // ))
           )}
         </div>
       )}

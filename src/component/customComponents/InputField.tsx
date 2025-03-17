@@ -19,7 +19,7 @@ const InputField: React.FC<InputType> = ({ type, name, placeholder, options }) =
         },
         email: {
             required : "Email is required",
-            pattern : { value: /^[a-zA-Z0-9]+@+[A-Za-z]+\.+com$/, message: 'Email must be valid' }
+            pattern : { value: /^[a-zA-Z0-9.]+@+[A-Za-z]+\.+com$/, message: 'Email must be valid' }
         },
         password : {
             required: "Password is required",

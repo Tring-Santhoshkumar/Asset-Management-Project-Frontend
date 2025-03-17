@@ -11,6 +11,13 @@ export const GET_USERS = gql`
       department
       role
       status
+      assigned_assets{
+        id
+        name
+        type
+        assigned_status
+        condition
+      }
     }
   }
 `;

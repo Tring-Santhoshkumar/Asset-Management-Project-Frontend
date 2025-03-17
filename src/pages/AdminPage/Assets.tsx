@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
 import { useState } from 'react';
 import 'primeicons/primeicons.css';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
 import { AddCircleOutline, FilterList } from "@mui/icons-material";
 import { toastAlert } from '../../component/customComponents/toastify';
+import { findAncestor } from 'typescript';
+import { GETUSER } from '../UserPage/UsersApi';
 
 interface AssetDataType {
   serial_no: string, type: string, name: string, version: string, specifications: string, condition: string, assigned_status: string
@@ -69,10 +71,14 @@ const Assets = () => {
     setAssetDetails({ ...assetDetails, [name]: value });
   };
 
+  const [loader,setLoader] = useState(false);
+
   const handleAddSubmit = async () => {
     const requiredFields = ["type", "serial_no", "name", "version", "specifications", "condition", "assigned_status"];
 
     const isValid = requiredFields.every(field => assetDetails[field as keyof AssetDataType]?.toString().trim());
+
+    setLoader(true);
 
     if (isValid == false) {
       toastAlert('error', 'Fill all the required fields');
@@ -86,6 +92,9 @@ const Assets = () => {
     catch (error) {
       toastAlert('error', 'Asset Adding Failed.');
     }
+    finally{
+      setLoader(false);
+    }
     handleCloseAdd();
   };
 
@@ -95,7 +104,7 @@ const Assets = () => {
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
         <div className="formContent" style={{ display: 'flex', alignItems: 'center', background: '#fff', padding: '10px', borderRadius: '10px', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
           <FilterList style={{ color: "gray", marginRight: 10 }} />
-          <Select name="assigned_status" className="userInput" onChange={handleChange} sx={{ minWidth: "150px", width: "max-content" }} displayEmpty>
+          <Select name="assigned_status" className="userInput" onChange={handleChange} value={filter} sx={{ minWidth: "150px", width: "max-content" }} displayEmpty>
             <MenuItem value="">All Assets</MenuItem>
             <MenuItem value="Available">Available Assets</MenuItem>
             <MenuItem value="Assigned">Assigned Assets</MenuItem>
@@ -152,6 +161,7 @@ const Assets = () => {
         </DialogActions>
       </Dialog>
       <Dialog open={openAddAsset} onClose={handleCloseAdd}>
+      <DialogTitle color='primary'>Add Asset</DialogTitle>
         <DialogContent style={{ width: "500px" }}>
           <TextField fullWidth label="Serial No" name="serial_no" value={assetDetails.serial_no} onChange={handleChangeAdding} margin="dense" required />
           <TextField fullWidth label="Type" name="type" value={assetDetails.type} onChange={handleChangeAdding} margin="dense" required />
@@ -175,7 +185,7 @@ const Assets = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAdd} color="primary">Cancel</Button>
-          <Button onClick={() => { handleAddSubmit(); }} color="primary" variant="contained" disabled={loading}>Submit</Button>
+          <Button onClick={() => { handleAddSubmit(); }} color="primary" variant="contained" disabled={loader}> {loader ? <CircularProgress size={24} color="inherit" /> : "Submit"}</Button>
         </DialogActions>
       </Dialog>
     </div>
