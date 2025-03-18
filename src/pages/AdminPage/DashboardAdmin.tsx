@@ -78,11 +78,11 @@ const DashboardAdmin = () => {
         ) : (
           filterNotifications?.map((notification : any) => (
             <MenuItem key={notification.id}>
-              <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: '5px' }}>
                 <span>{notification.message}</span>
-                <div>
-                  <Button size="small" color="success" disabled={loader} onClick={() => handleNotificationClick(notification.id, true)}>{loader ? <CircularProgress size={24} color="inherit"/> : "Approve"}</Button>
-                  <Button size="small" color="error" disabled={loader} onClick={() => handleNotificationClick(notification.id, false)}>{loader ? <CircularProgress size={24} color="inherit"/> : "Reject"}</Button>
+                <div style={{display:'flex', gap:'10px'}}>
+                  <Button size="small" color="success" variant="contained" disabled={loader} onClick={() => handleNotificationClick(notification.id, true)}>{loader ? <CircularProgress size={24} color="inherit"/> : "Approve"}</Button>
+                  <Button size="small" color="error" variant="contained" disabled={loader} onClick={() => handleNotificationClick(notification.id, false)}>{loader ? <CircularProgress size={24} color="inherit"/> : "Reject"}</Button>
                 </div>
               </div>
             </MenuItem>

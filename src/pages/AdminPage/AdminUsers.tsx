@@ -7,11 +7,13 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import { Select, MenuItem, IconButton, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Dialog, Button, DialogActions, DialogContent, DialogTitle, TextField, CircularProgress } from "@mui/material";
 import { toastAlert } from "../../component/customComponents/toastify";
+
 interface UserType {
   name: string,
   email: string,
   role: string
 }
+
 const UsersPage = () => {
 
   const { data, refetch } = useQuery(GET_USERS, {
