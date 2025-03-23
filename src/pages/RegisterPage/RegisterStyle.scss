@@ -22,7 +22,7 @@
             margin-bottom: 20px;
         }
 
-        button {
+        .loginSubmit {
             width: 100%;
             padding: 12px;
             background: #1976d2;
@@ -35,7 +35,7 @@
             transition: background 0.3s;
         }
 
-        button:hover {
+        .loginSubmit:hover {
             background-color: #177ce2;
         }
 

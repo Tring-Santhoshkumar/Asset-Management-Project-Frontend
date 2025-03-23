@@ -3,12 +3,16 @@ import { useState, useEffect } from "react";
 import { DEASSIGNASSET, DELETEUSER, GETUSER, UPDATEUSER } from "./UsersApi";
 import { toastAlert } from "../../component/customComponents/toastify";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Badge, Box, Button, Card, CardActionArea, CardContent, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, Menu, MenuItem, Select, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { Badge, Box, Button, Card, CardActionArea, CardContent, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, Menu, MenuItem, Select, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import DevicesIcon from "@mui/icons-material/Devices";
 import { ASSIGNASSET, GETALLASSETS, GETASSETBYID, GETASSETBYUSERID, REQUESTASSET } from "../AdminPage/AssetsApi";
 import { useForm } from "react-hook-form";
 import { CREATE_NOTIFICATION, GETNOTIFICATIONSBYID } from "../AdminPage/NotificationsApi";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import AppLoaderComponent from "../../component/customComponents/Loader/AppLoaderComponent";
 
 interface UserIdProp {
   userId: String
@@ -22,11 +26,11 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const isAdmin = location.pathname.startsWith("/admin/users");
 
-  const selectedUserId = localStorage.getItem('selectedUserId');
+  // const selectedUserId = localStorage.getItem('selectedUserId');
 
-  const { data, loading, error, refetch } = useQuery(GETUSER, { variables: { id: userId }, fetchPolicy: "no-cache" });
+  const { data, refetch } = useQuery(GETUSER, { variables: { id: userId }, fetchPolicy: "no-cache" });
 
-  const { data: assetData } = useQuery(GETALLASSETS);
+  const { data: assetData, refetch: refetchAssetData } = useQuery(GETALLASSETS);
 
   const { data: assetByUserId, refetch: refetchAssetByUser } = useQuery(GETASSETBYUSERID, { variables: { assigned_to: userId }, fetchPolicy: "no-cache" });
 
@@ -40,7 +44,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const [deAssignAsset] = useMutation(DEASSIGNASSET);
 
-  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm({
     defaultValues: {
       name: "", email: "", dob: "", gender: "",
       blood_group: "", marital_status: "", phone: "", address: "", designation: "", department: "", city: "", state: "", pin_code: "", country: "", profile_pic: "",
@@ -51,9 +55,9 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const [updateUser] = useMutation(UPDATEUSER);
 
-  const [editEnable, setEditEnable] = useState<Boolean>(false);
+  const [editEnable, setEditEnable] = useState<boolean>(false);
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
 
   const [openRequest, setOpenRequest] = useState(false);
 
@@ -122,6 +126,8 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const [assignLoader, setAssignLoader] = useState(false);
 
+  const [deleteLoader, setDeleteLoader] = useState(false);
+
   const onAssignAsset = async () => {
     setAssignLoader(true);
     try {
@@ -148,7 +154,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
       const selectedUser = data?.user?.name;
       const selectedAsset = assetData?.allAssets?.find((asset: any) => asset.id === selectedAssetId);
       const msg = `User ${selectedUser} requested asset ${selectedAsset.name}.`
-      // console.log('Filter : ',selectedUser,selectedAsset.name,msg);
+      // console.log('Filter : ',selectedAssetId,userId,msg);
       await createNotification({
         variables: {
           user_id: userId,
@@ -158,13 +164,14 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
       });
       toastAlert('success', "Asset Requested Successfully,You'll be notified through mail!");
     }
-    catch (error) {
+    catch (error: any) {
       console.error("Mutation Error:", error);
       toastAlert('error', "Asset Assigned Failed.");
     }
   };
 
   const onDeleteUser = async () => {
+    setDeleteLoader(true);
     try {
       const res = await deleteUser({ variables: { id: userId } });
       // console.log("Mutation Response:", res);
@@ -174,6 +181,9 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
       console.error("Mutation Error:", error);
       toastAlert('error', "User deletion Failed.");
     }
+    finally {
+      setDeleteLoader(false);
+    }
     navigate(-1);
     handleCloseDelete();
   }
@@ -182,42 +192,39 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     try {
       const res = await deAssignAsset({ variables: { id: assetStatus } });
       console.log("De", res);
+      navigate(-1);
       toastAlert('success', 'Asset De-assigned Successfully!');
     }
     catch (error: any) {
       // console.log(error);
       toastAlert('error', error);
     }
-    navigate(-1);
     handleCloseAssetStatus();
   }
 
   useEffect(() => {
     const updatedUserId = localStorage.getItem("selectedUserId") || localStorage.getItem("userId");
-
     if (updatedUserId) {
       refetch({ id: updatedUserId }).then(({ data }) => {
         if (data?.user) {
           reset(data.user);
         }
       });
+      refetchAssetData();
+      refetchAssetByUser({ assigned_to: updatedUserId })
+      refetchNotification({ user_id: updatedUserId });
     }
   }, [userId, refetch, reset, data]);
-
-  // useEffect(() => {
-  //   if (data?.user) {
-  //     refetch();
-  //     reset(data.user);
-  //   }
-  // }, [data, reset]);
 
   const onSubmit = async (formData: any) => {
     try {
       const { data } = await updateUser({
         variables: {
-          id: userId || null, name: formData.name || null, email: formData.email || null, dob: formData.dob || null, gender: formData.gender || null,
-          blood_group: formData.blood_group || null, marital_status: formData.marital_status || null, phone: formData.phone || null, address: formData.address || null, designation: formData.designation || null,
-          department: formData.department || null, city: formData.city || null, state: formData.state || null, pin_code: formData.pin_code || null, country: formData.country || null, profile_pic: formData.profile_pic || null,
+          input: {
+            id: userId || null, name: formData.name || null, email: formData.email || null, dob: formData.dob || null, gender: formData.gender || null,
+            blood_group: formData.blood_group || null, marital_status: formData.marital_status || null, phone: formData.phone || null, address: formData.address || null, designation: formData.designation || null,
+            department: formData.department || null, city: formData.city || null, state: formData.state || null, pin_code: formData.pin_code || null, country: formData.country || null, profile_pic: formData.profile_pic || null,
+          }
         }
       });
       toastAlert('success', 'Saved Successfully!');
@@ -228,7 +235,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     }
   };
 
-  const { data: getNotifications } = useQuery(GETNOTIFICATIONSBYID, { variables: { user_id: userId } });
+  const { data: getNotifications, refetch: refetchNotification } = useQuery(GETNOTIFICATIONSBYID, { variables: { user_id: userId }, fetchPolicy: 'cache-only' });
   const [anchorEl, setAnchorEl] = useState<any>(null);
   const openNotifications = Boolean(anchorEl);
   const handleClickNotifications = (e: any) => {
@@ -238,32 +245,61 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     setAnchorEl(null);
   };
 
+  const notifications = getNotifications?.getNotificationsById || [];
+  const unseenCount = notifications.filter((notification: any) => notification.is_read == false).length;
+  const approvedCount = notifications.filter((notification: any) => notification.approved).length;
+  const rejectedCount = notifications.filter((notification: any) => notification.is_read && notification.approved == false).length;
+  const tooltipTitle = `Unseen: ${unseenCount} | Approved: ${approvedCount} | Rejected: ${rejectedCount}`;
+  let notificationList;
+  if (notifications.length === 0) {
+    notificationList = <MenuItem>No notifications</MenuItem>;
+  }
+  else {
+    notificationList = notifications.map((notification: any) => {
+      let statusText = "Not Seen";
+      let statusColor = "blue";
+      let StatusIcon = <VisibilityIcon sx={{ color: "blue", marginRight: "8px" }} />;
+      if(notification.approved){
+        statusColor = "green";
+        statusText = "Approved";
+        StatusIcon = <CheckCircleIcon sx={{ color: "green", marginRight: "8px" }} />;
+      } 
+      else if(notification.is_read && notification.approved == false){
+        statusText = "Rejected";
+        statusColor = "red";
+        StatusIcon = <CancelIcon sx={{ color: "red", marginRight: "8px" }} />;
+      }
+
+      return (
+        <MenuItem key={notification.id} sx={{ color: statusColor }}>
+          <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+            {StatusIcon}
+            <div style={{ display: "flex", flexDirection: "column", marginLeft: "10px" }}>
+              <span>Your Request: {notification.message}</span>
+              <span style={{ fontSize: "12px", color: statusColor }}>{statusText}</span>
+            </div>
+          </div>
+        </MenuItem>
+      );
+    });
+  }
+
   return (
     <div className="userDashboard">
       <h2 className="userHeading">User Dashboard
-        <IconButton color="inherit" onClick={handleClickNotifications} style={{ marginLeft: '95%' }}>
-          <Badge badgeContent={getNotifications?.getNotificationsById?.length || 0} color="error"><NotificationsIcon /></Badge>
-        </IconButton>
+        <Tooltip title={tooltipTitle} placement="bottom">
+          <IconButton color="inherit" onClick={handleClickNotifications} style={{ marginLeft: "95%" }}>
+            <Badge badgeContent={notifications.length} color="error"><NotificationsIcon /></Badge>
+          </IconButton>
+        </Tooltip>
       </h2>
       <Menu anchorEl={anchorEl} open={openNotifications} onClose={handleCloseNotifications}>
-        {getNotifications?.getNotificationsById?.length === 0 ? (
-          <MenuItem>No notifications</MenuItem>
-        ) : (
-          getNotifications?.getNotificationsById?.map((notification: any) => (
-            <MenuItem key={notification.id} sx={{ color: notification.is_read == true ? 'green' : 'red' }}>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span>Your Request : {notification.message}</span>
-              </div>
-              {/* <Button size="small" color="primary" onClick={() => handleCloseNotifications()}>Cancel</Button> */}
-            </MenuItem>
-          ))
-        )}
+        {notificationList}
       </Menu>
 
-      <ToggleButtonGroup value={selectedView} exclusive onChange={(event, newView) => {
+      <ToggleButtonGroup value={selectedView} exclusive onChange={(_, newView) => {
         if (newView !== null) {
           setSelectedView(newView);
-          refetchAssetByUser();
         }
       }}
         aria-label="user view toggle"
@@ -278,17 +314,17 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
         <div className="formMain">
           <div className="formContent">
             <label className="userLabel">Name<span style={{ color: 'red', background: 'none' }}>*</span></label>
-            <input type="text" {...register("name", { required: "Name is required", minLength: { value: 3, message: "Name must be at least 3 characters" } })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("name", e.target.value.trim())}/>
+            <input type="text" {...register("name", { required: "Name is required", minLength: { value: 3, message: "Name must be at least 3 characters" } })} className="userInput" disabled={!editEnable} onBlur={(e) => setValue("name", e.target.value.trim())} />
             {errors.name && <p className="formError">{errors.name.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Email<span style={{ color: 'red', background: 'none' }}>*</span></label>
-            <input type="email" {...register("email", { required: "Email is required", pattern : { value: /^[a-zA-Z0-9.]+@+[A-Za-z]+\.+com$/, message: 'Email must be valid' } })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("email", e.target.value.trim())}/>
+            <input type="email" {...register("email", { required: "Email is required", pattern: { value: /^[a-zA-Z0-9.]+@+[A-Za-z]+\.+com$/, message: 'Email must be valid' } })} className="userInput" disabled={!editEnable} onBlur={(e) => setValue("email", e.target.value.trim())} />
             {errors.email && <p className="formError">{errors.email.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Date of Birth</label>
-            <input type="date" {...register("dob", { required: "Date of Birth is required",validate: (value) => { const selectedDate = new Date(value); const today = new Date(); return selectedDate <= today || "Date of Birth selection is invalid" }, })} className="userInput" disabled={!editEnable} />
+            <input type="date" {...register("dob", { required: "Date of Birth is required", validate: (value) => { const selectedDate = new Date(value); const today = new Date(); return selectedDate <= today || "Date of Birth selection is invalid" }, })} className="userInput" disabled={!editEnable} />
             {errors.dob && <p className="formError">{errors.dob.message}</p>}
           </div>
           <div className="formContent">
@@ -329,27 +365,27 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           </div>
           <div className="formContent">
             <label className="userLabel">Phone</label>
-            <input type="text" {...register("phone", { required: "Phone is required",validate: (value) => value !== "0000000000" || "Phone number cannot be all zeros", pattern: { value: /^[0-9]{10}$/, message: "Must be a 10 Digit Valid Phone Number" }, })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("phone", e.target.value.trim())}/>
+            <input type="text" {...register("phone", { required: "Phone is required", validate: (value) => value !== "0000000000" || "Phone number cannot be all zeros", pattern: { value: /^[0-9]{10}$/, message: "Must be a 10 Digit Valid Phone Number" }, })} className="userInput" disabled={!editEnable} onBlur={(e) => setValue("phone", e.target.value.trim())} />
             {errors.phone && <p className="formError">{errors.phone.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Designation</label>
-            <input type="text" {...register("designation", { required: "Designation is required", minLength: { value: 2, message: "Designation must be at least 2 characters" } })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("designation", e.target.value.trim())}/>
+            <input type="text" {...register("designation", { required: "Designation is required", minLength: { value: 2, message: "Designation must be at least 2 characters" } })} className="userInput" disabled={!editEnable} onBlur={(e) => setValue("designation", e.target.value.trim())} />
             {errors.designation && <p className="formError">{errors.designation.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">Department</label>
-            <input type="text" {...register("department", { required: "Department is required", minLength: { value: 2, message: "Department must be at least 2 characters" } })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("department", e.target.value.trim())}/>
+            <input type="text" {...register("department", { required: "Department is required", minLength: { value: 2, message: "Department must be at least 2 characters" } })} className="userInput" disabled={!editEnable} onBlur={(e) => setValue("department", e.target.value.trim())} />
             {errors.department && <p className="formError">{errors.department.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">City</label>
-            <input type="text" {...register("city", { required: "City is required", minLength: { value: 2, message: "City must be at least 2 characters"}})} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("city", e.target.value.trim())}/>
+            <input type="text" {...register("city", { required: "City is required", minLength: { value: 2, message: "City must be at least 2 characters" } })} className="userInput" disabled={!editEnable} onBlur={(e) => setValue("city", e.target.value.trim())} />
             {errors.city && <p className="formError">{errors.city.message}</p>}
           </div>
           <div className="formContent">
             <label className="userLabel">State</label>
-            <input type="text" {...register("state", { required: "State is required", minLength: { value: 2, message: "State must be at least 2 characters" }})} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("state", e.target.value.trim())}/>
+            <input type="text" {...register("state", { required: "State is required", minLength: { value: 2, message: "State must be at least 2 characters" } })} className="userInput" disabled={!editEnable} onBlur={(e) => setValue("state", e.target.value.trim())} />
             {errors.state && <p className="formError">{errors.state.message}</p>}
           </div>
           <div className="formContent">
@@ -359,25 +395,31 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           </div>
           <div className="formContent">
             <label className="userLabel">Country</label>
-            <input type="text" {...register("country", { required: "Country is required", minLength: { value: 2, message: "Country must be at least 2 characters" } })} className="userInput" disabled={!editEnable}  onBlur={(e) => setValue("country", e.target.value.trim())}/>
+            <input type="text" {...register("country", { required: "Country is required", minLength: { value: 2, message: "Country must be at least 2 characters" } })} className="userInput" disabled={!editEnable} onBlur={(e) => setValue("country", e.target.value.trim())} />
             {errors.country && <p className="formError">{errors.country.message}</p>}
           </div>
           <div className="formContent fullWidth">
             <label className="userLabel">Address</label>
-            <textarea {...register("address", { required: "Address is required", minLength: { value: 5, message: "Address must be atleast 5 charactes"} })} className="userInput" disabled={!editEnable} style={{ resize: 'none' }}  onBlur={(e) => setValue("address", e.target.value.trim())}/>
+            <textarea {...register("address", { required: "Address is required", minLength: { value: 5, message: "Address must be atleast 5 charactes" } })} className="userInput" disabled={!editEnable} style={{ resize: 'none' }} onBlur={(e) => setValue("address", e.target.value.trim())} />
             {errors.address && <p className="formError">{errors.address.message}</p>}
           </div>
         </div>
         <div className="userButtons">
           {isAdmin ? (
-            <><button type="button" className="userSubmit" onClick={handleOpen}>➕ Assign Asset</button>
+            <>
+              {data?.user?.status == 'Active' ?
+                <>
+                  <button type="button" className="userSubmit" onClick={handleOpen}>➕ Assign Asset</button>
+                  <button type="button" className="userSubmit" onClick={handleOpenDelete}>Delete</button> </> : ''}
               <button type="button" className="userSubmit" onClick={() => navigate(-1)}>Cancel</button>
-              <button type="button" className="userSubmit" onClick={handleOpenDelete}>Delete</button></>
+            </>
           ) : (
             <button type="button" className="userSubmit" onClick={handleOpenRequest}>📩 Request Asset</button>
           )}
-          <button type="button" className="userSubmit" onClick={() => setEditEnable(editEnable == false ? true : false)}>Edit</button>
-          <button type="submit" className="userSubmit">Save</button>
+          {data?.user?.status == 'Active' ?
+            <>
+              <button type="button" className="userSubmit" onClick={() => setEditEnable(editEnable == false ? true : false)}>Edit</button>
+              <button type="submit" className="userSubmit">Save</button></> : ''}
 
           <Dialog open={open} onClose={handleClose}>
             <DialogTitle>Assign Asset for {data?.user?.name}</DialogTitle>
@@ -393,6 +435,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
               </FormControl>
             </DialogContent>
             <DialogContent>
+              {assignLoader && <AppLoaderComponent />}
               <FormControl sx={{ m: 1, minWidth: 500 }} disabled={!selectedType}>
                 <InputLabel htmlFor="grouped-select">Device Name</InputLabel>
                 <Select value={selectedAssetId} id="grouped-select" label="Grouping" onChange={(e) => setSelectedAssetId(e.target.value)}>
@@ -405,7 +448,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
             </DialogContent>
             <DialogActions>
               <Button onClick={handleClose} color="primary">Close</Button>
-              <Button onClick={() => { onAssignAsset() }} color="success" disabled={assignLoader}>{assignLoader ? <CircularProgress size={24} color="inherit" /> : 'Save'}</Button>
+              <Button onClick={() => { onAssignAsset() }} color="success" disabled={assignLoader}>Save</Button>
             </DialogActions>
           </Dialog>
 
@@ -440,6 +483,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           </Dialog>
 
           <Dialog open={openDelete} onClose={handleCloseDelete}>
+            {deleteLoader && <AppLoaderComponent />}
             <DialogTitle><strong>Delete User</strong></DialogTitle>
             <DialogContent style={{ width: "500px" }}><p>Are You sure want to delete the user?</p></DialogContent>
             <DialogActions>
@@ -456,11 +500,11 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           ) : (
             <div style={{ display: "grid", padding: "20px", gridTemplateColumns: "repeat(3, 1fr)", gap: "30px" }}>
               {assetDataById.map((asset: any) => (
-                <Card key={asset.id} sx={{ my: 2, borderRadius: 5,border:'2px solid #1976d2', cursor: "pointer", boxShadow: 3, transition: "0.3s", height: "300px", "&:hover": { transform: "scale(1.05)", boxShadow: 6 },}} onClick={() => setAssetStatus(asset.id)}>
-                  <CardActionArea sx={{ padding: 2, height:'100%' }}>
+                <Card key={asset.id} sx={{ my: 2, borderRadius: 5, border: '2px solid #1976d2', cursor: "pointer", boxShadow: 3, transition: "0.3s", height: "300px", "&:hover": { transform: "scale(1.05)", boxShadow: 6 }, }} onClick={() => setAssetStatus(asset.id)}>
+                  <CardActionArea sx={{ padding: 2, height: '100%' }}>
                     <CardContent>
                       <Box display="flex" alignItems="center" gap='1' mb='1'>
-                        <DevicesIcon color="primary" fontSize="medium"/>
+                        <DevicesIcon color="primary" fontSize="medium" />
                         <Typography padding={1} fontWeight="bolder">{asset.name}</Typography>
                       </Box>
                       <Typography variant="body1" color="text.primary"><strong>Serial No:</strong> {asset.serial_no}</Typography>
@@ -479,18 +523,17 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           )}
         </div>
       )}
-      <Dialog open={openAssetStatus} onClose={handleCloseAssetStatus}>
+      {isAdmin ? <Dialog open={openAssetStatus} onClose={handleCloseAssetStatus}>
         <DialogTitle><strong>Set Asset as Available</strong></DialogTitle>
         <DialogContent><p>Are You Sure want to Set the Asset as available?</p></DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAssetStatus} color="secondary">Cancel</Button>
           <Button onClick={onDeleteAssetForUser} color="primary">Set Available</Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> : ''}
+
     </div>
   )
 }
 
 export default Users
-
-

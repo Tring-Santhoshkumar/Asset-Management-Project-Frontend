@@ -14,6 +14,7 @@ export const GETALLASSETS = gql`
           assigned_status
           assigned_date
           return_date
+          deleted_at
         } 
     }
 `
@@ -33,6 +34,7 @@ export const GETASSETBYID = gql`
         assigned_status
         assigned_date
         return_date
+        deleted_at
       }
     }
 `
@@ -49,6 +51,7 @@ export const ASSIGNASSET = gql`
       assigned_to
       assigned_status
       assigned_date
+      deleted_at
     }
   }
 `;
@@ -62,9 +65,8 @@ export const REQUESTASSET = gql`
 
 
 export const ADDASSET = gql`
-  mutation AddAsset($type: String!, $serial_no: String!, $name: String!, $version: String!, $specifications: String!, $condition: String!,$assigned_to: ID, $assigned_status: String!,
-                    $assigned_date: String,$return_date: String){
-    addAsset(type: $type, serial_no: $serial_no, name: $name, version: $version, specifications: $specifications, condition: $condition,assigned_to: $assigned_to, assigned_status: $assigned_status, assigned_date: $assigned_date, return_date: $return_date)
+  mutation AddAsset($input: addAssetInput){
+    addAsset(input: $input)
   }
 `
 
@@ -83,6 +85,14 @@ export const GETASSETBYUSERID = gql`
         assigned_status
         assigned_date
         return_date
+        deleted_at
       }
     }
+`
+
+
+export const DELETEASSET = gql`
+  mutation DeleteAsset($id: ID!){
+    deleteAsset(id: $id)
+  }
 `

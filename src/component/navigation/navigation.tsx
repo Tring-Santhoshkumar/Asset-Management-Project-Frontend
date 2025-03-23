@@ -4,12 +4,13 @@ import DashboardAdmin from '../../pages/AdminPage/DashboardAdmin';
 import Users from '../../pages/UserPage/Users';
 import Assets from '../../pages/AdminPage/Assets';
 import AdminUsers from '../../pages/AdminPage/AdminUsers';
-import ChangePassword from '../../pages/AdminPage/ChangePassword';
+import ChangePassword from '../../pages/ChangePasswordPage/ChangePassword';
+import LandingPage from '../../pages/LandingPage/LandingPage';
 
 export const publicRoutes = [
     {
         path : "/",
-        element : <Register />
+        element : <LandingPage />
     },
     {
         path : "/login",

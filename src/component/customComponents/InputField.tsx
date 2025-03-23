@@ -1,45 +1,53 @@
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { IconButton, InputAdornment, TextField } from "@mui/material";
+import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 interface InputType {
-    type : string;
-    name : "name" | "email" | "password" | "confirmPassword" | "adminKey" | "role";
-    placeholder : string;
-    classname? : string;
-    options? : { label : string; value : string }[];
+    type: string;
+    name: "name" | "email" | "password" | "confirmPassword" | "adminKey" | "role";
+    placeholder: string;
+    classname?: string;
+    options?: { label: string; value: string }[];
 }
 
 const InputField: React.FC<InputType> = ({ type, name, placeholder, options }) => {
-    const { register, formState : { errors }, getValues } = useFormContext();
+    const { register, formState: { errors }, getValues } = useFormContext();
 
     const validation = {
-        name : {
-            required : "Name is required",
-            pattern : { value : /^[A-Za-z\s]+$/, message: "Name must be only alphabets" },
-            minLength : { value : 3, message : "Name must be at least 3 characters." }
+        name: {
+            required: "Name is required",
+            pattern: { value: /^[A-Za-z\s]+$/, message: "Name must be only alphabets" },
+            minLength: { value: 3, message: "Name must be at least 3 characters." }
         },
         email: {
-            required : "Email is required",
-            pattern : { value: /^[a-zA-Z0-9.]+@+[A-Za-z]+\.+com$/, message: 'Email must be valid' }
+            required: "Email is required",
+            pattern: { value: /^[a-zA-Z0-9.]+@+[A-Za-z]+\.+com$/, message: 'Email must be valid' }
         },
-        password : {
+        password: {
             required: "Password is required",
-            minLength: { value : 8, message : "Password must be at least 8 characters" },
+            minLength: { value: 8, message: "Password must be at least 8 characters" },
             pattern: { value : /^(?=.*[!@#$%^&*(),.<>?])(?=.*[0-9])(?=.*[A-Z]).+$/, message: 'Password must be atleast 5 characters and atleast include a uppercase letter, a number, and a special character.' },
         },
-        confirmPassword : {
+        confirmPassword: {
             required: "Confirm Password is required",
             validate: (value: string) => value == getValues("password") || "Passwords do not match."
         },
-        role : {
+        role: {
             required: "Role is required",
         },
-        adminKey : {
+        adminKey: {
             required: "Admin Key is required",
             validate: (value: string) => value == "admin123" || "Invalid Admin Key,Enter correct credentials."
         }
     };
+    const [showPassword, setShowPassword] = useState(false);
 
-    return(
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+
+    return (
         <div>
             {type === "radio" && options ? (
                 <div className="radioGroup">
@@ -50,7 +58,23 @@ const InputField: React.FC<InputType> = ({ type, name, placeholder, options }) =
                         </label>
                     ))}
                 </div>
-            ) : ( <input type={type} placeholder={placeholder}  className='formInput' {...register(name, validation[name])} />)}
+            ) :
+                <TextField {...register(name, validation[name])}
+                    type={type === "password" ? (showPassword ? "text" : "password") : type} label={placeholder} variant="outlined" fullWidth margin="normal"
+                    InputProps= {type === "password" ? {
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton onClick={togglePasswordVisibility} edge="end">
+                                    {showPassword == true ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    }
+                        : undefined
+                    }
+                />
+            }
+            {/* // ( <input type={type} placeholder={placeholder}  className='formInput' {...register(name, validation[name])} />)} */}
             {errors?.[name] && <span className="formError">{errors[name]?.message as string}</span>}
         </div>
     );

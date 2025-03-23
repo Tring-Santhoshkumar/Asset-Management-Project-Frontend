@@ -6,6 +6,8 @@ export const GETNOTIFICATIONS = gql`
             id
             message
             is_read
+            approved
+            rejected
             created_at
         }
     }
@@ -17,6 +19,8 @@ export const GETNOTIFICATIONSBYID = gql`
             id
             message
             is_read
+            approved
+            rejected
             created_at
     }
   }
@@ -29,6 +33,8 @@ export const CREATE_NOTIFICATION = gql`
       message
       is_read
       created_at
+      approved
+      rejected
     }
   }
 `;

@@ -1,4 +1,4 @@
-import { ADDASSET, GETALLASSETS, GETASSETBYID } from './AssetsApi';
+import { ADDASSET, DELETEASSET, GETALLASSETS, GETASSETBYID } from './AssetsApi';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
 import { useState } from 'react';
@@ -6,8 +6,9 @@ import 'primeicons/primeicons.css';
 import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
 import { AddCircleOutline, FilterList } from "@mui/icons-material";
 import { toastAlert } from '../../component/customComponents/toastify';
-import { findAncestor } from 'typescript';
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import { GETUSER } from '../UserPage/UsersApi';
+import AppLoaderComponent from '../../component/customComponents/Loader/AppLoaderComponent';
 
 interface AssetDataType {
   serial_no: string, type: string, name: string, version: string, specifications: string, condition: string, assigned_status: string
@@ -23,15 +24,18 @@ const Assets = () => {
 
   const { data: assetById } = useQuery(GETASSETBYID, { variables: { id: selectedAssetId } });
 
-  const [addAsset, { loading }] = useMutation(ADDASSET, {
+  const [addAsset] = useMutation(ADDASSET, {
     onCompleted() {
       refetch();
     }
   });
 
+  const [deleteAsset] = useMutation(DELETEASSET, { onCompleted(){
+    refetch();
+  }})
+
   // console.log(assetById);
   const [filter, setFilter] = useState("");
-  const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
 
@@ -73,6 +77,8 @@ const Assets = () => {
 
   const [loader,setLoader] = useState(false);
 
+  const [deleteLoader, setDeleteLoader] = useState(false);
+
   const handleAddSubmit = async () => {
     const requiredFields = ["type", "serial_no", "name", "version", "specifications", "condition", "assigned_status"];
 
@@ -82,10 +88,11 @@ const Assets = () => {
 
     if (isValid == false) {
       toastAlert('error', 'Fill all the required fields');
+      setLoader(false);
       return;
     }
     try {
-      const res = await addAsset({ variables: { type: assetDetails.type, serial_no: assetDetails.serial_no, name: assetDetails.name, version: assetDetails.version, specifications: assetDetails.specifications, condition: assetDetails.condition, assigned_status: assetDetails.assigned_status } });
+      const res = await addAsset({ variables: { input: { type: assetDetails.type, serial_no: assetDetails.serial_no, name: assetDetails.name, version: assetDetails.version, specifications: assetDetails.specifications, condition: assetDetails.condition, assigned_status: assetDetails.assigned_status} } });
       console.log('DATA', res);
       toastAlert('success', 'Asset Added Successfully');
     }
@@ -98,27 +105,42 @@ const Assets = () => {
     handleCloseAdd();
   };
 
+  const handleDeleteAsset = async (assetId: any) => {
+    setDeleteLoader(true);
+    try{
+      const res = await deleteAsset({ variables: { id: assetId}});
+      console.log('DELETE ASSET',res);
+      toastAlert('success','Asset Deleted Successfully');
+    }
+    catch(error: any){
+      toastAlert('error',error);
+    }
+    finally{
+      setDeleteLoader(false);
+    }
+    handleClose();
+  }
+
   return (
     <div className="usersContainer">
-      <Typography variant="h5" className="adminUsersHeading">List of All Assets</Typography>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
-        <div className="formContent" style={{ display: 'flex', alignItems: 'center', background: '#fff', padding: '10px', borderRadius: '10px', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
-          <FilterList style={{ color: "gray", marginRight: 10 }} />
-          <Select name="assigned_status" className="userInput" onChange={handleChange} value={filter} sx={{ minWidth: "150px", width: "max-content" }} displayEmpty>
-            <MenuItem value="">All Assets</MenuItem>
-            <MenuItem value="Available">Available Assets</MenuItem>
-            <MenuItem value="Assigned">Assigned Assets</MenuItem>
-          </Select>
+      <div className="headerSection">
+        <h2 className="adminUsersHeading">List of All Assets</h2>
+        <div className="actions">
+          <div className="filterSelectContainer">
+            <select className="filterSelect" name="assigned_status" onChange={handleChange} value={filter}>
+              <option value="">All Assets</option>
+              <option value="Available">Available Assets</option>
+              <option value="Assigned">Assigned Assets</option>
+            </select>
+          </div>
+          <button className="addButton" onClick={handleOpenAdd}><AddCircleOutline/> Add Asset</button>
         </div>
-        <IconButton onClick={handleOpenAdd} sx={{ color: 'gray', fontSize: 40, marginLeft: 2 }}>
-          <AddCircleOutline sx={{ fontSize: 40 }} />
-        </IconButton>
       </div>
-      <TableContainer component={Paper} style={{ maxHeight: 500, overflowY: "auto" }}>
+      <TableContainer component={Paper} style={{ maxHeight: 540, overflowY: "auto" }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              {["Serial No", "Type", "Name", "Condition", "Assigned Status", "Assigned To", "Details"].map((header) => (
+              {["Serial No", "Type", "Name", "Condition", "Assigned Status", "Details"].map((header) => (
                 <TableCell key={header} sx={{ backgroundColor: "#1976d2", color: "white", fontWeight: "bold" }}>
                   {header}
                 </TableCell>
@@ -133,14 +155,14 @@ const Assets = () => {
                 <TableCell>{asset.name}</TableCell>
                 <TableCell>{asset.condition}</TableCell>
                 <TableCell>{asset.assigned_status}</TableCell>
-                <TableCell>{asset.assigned_to || "-"}</TableCell>
-                <TableCell><button onClick={() => handleOpen(asset.id)} className="viewButton"><i className="pi pi-arrow-circle-down" style={{ color: "whitesmoke" }}></i> View</button></TableCell>
+                <TableCell><button onClick={() => handleOpen(asset.id)} className="viewButton"><RemoveRedEyeIcon/></button></TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
       <Dialog open={open} onClose={handleClose}>
+        {deleteLoader && <AppLoaderComponent />}
         <DialogTitle className="dialog-title">Asset Details for {assetById?.asset?.name}</DialogTitle>
         <DialogContent className="dialog-content" style={{ width: '400px' }}>
           {assetById?.asset && (
@@ -158,9 +180,11 @@ const Assets = () => {
         </DialogContent>
         <DialogActions className="dialog-actions">
           <Button onClick={handleClose} color="primary">Close</Button>
+          <Button onClick={() =>handleDeleteAsset(assetById?.asset?.id)} color='error' variant='contained'>Delete</Button>
         </DialogActions>
       </Dialog>
       <Dialog open={openAddAsset} onClose={handleCloseAdd}>
+        {loader && <AppLoaderComponent />}
       <DialogTitle color='primary'>Add Asset</DialogTitle>
         <DialogContent style={{ width: "500px" }}>
           <TextField fullWidth label="Serial No" name="serial_no" value={assetDetails.serial_no} onChange={handleChangeAdding} margin="dense" required />
@@ -182,10 +206,18 @@ const Assets = () => {
               </MenuItem>
             ))}
           </TextField>
+          {/* {assetDetails.assigned_status === "Assigned" && (
+          <TextField select fullWidth label="Assign To" name="assigned_to" value={assetDetails.assigned_to} onChange={handleChangeAdding} margin="dense" required>
+            {users.map((user) => (
+              <MenuItem key={user.id} value={user.id}>
+                {user.name}
+              </MenuItem>
+            ))}
+          </TextField>)} */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAdd} color="primary">Cancel</Button>
-          <Button onClick={() => { handleAddSubmit(); }} color="primary" variant="contained" disabled={loader}> {loader ? <CircularProgress size={24} color="inherit" /> : "Submit"}</Button>
+          <Button onClick={() => { handleAddSubmit(); }} color="primary" variant="contained" >Submit</Button>
         </DialogActions>
       </Dialog>
     </div>

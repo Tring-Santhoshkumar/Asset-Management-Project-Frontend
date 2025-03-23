@@ -13,10 +13,9 @@ export const GET_USERS = gql`
       status
       assigned_assets{
         id
+        serial_no
         name
         type
-        assigned_status
-        condition
       }
     }
   }

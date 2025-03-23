@@ -9,18 +9,21 @@
     color: #ffffff;
     padding: 15px;
     display: flex;
-    justify-content: space-between;
     flex-direction: column;
+
+    .logo{
+        border-radius: 5px;
+    }
 
     .sideBarMenu {
         flex-grow: 1;
+        margin-top: 30px;
         padding: 0;
-        margin: 0;
         list-style: none;
 
         li {
             padding: 15px 20px;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 500;
             cursor: pointer;
             border-radius: 5px;
@@ -35,15 +38,42 @@
                 text-decoration: none;
                 color: inherit;
             }
+
+            &.active{
+                color: black;
+        
+                a {
+                    color: black;
+                }
+            }
         
             &:hover {
                 background-color: white;
-                color: #212121;
+                color: #1976d2;
         
                 a {
-                    color: #212121;
+                    color: #1976d2;
                 }
             }
+
         }
+    }
+    .logoutButton {
+        padding: 50px 0px;
+        margin-right: 150px;
+        font-size: 18px;
+        font-weight: 500;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background 0.3s ease, color 0.3s ease;
+        align-items: center;
+        background: none;
+        color: #ffffff;
+        border: none;
+        outline: none;
+    }
+
+    .logoutButton:hover {
+        color: red;
     }
 }
