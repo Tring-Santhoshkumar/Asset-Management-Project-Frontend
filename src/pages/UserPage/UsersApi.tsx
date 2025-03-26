@@ -12,7 +12,6 @@ export const GETUSER = gql`
       marital_status
       phone
       address
-      profile_pic
       designation
       department
       city
@@ -34,7 +33,6 @@ mutation UpdateUser($input: updateUserInput) {
     name
     email
     role
-    profile_pic
     dob
     gender
     blood_group

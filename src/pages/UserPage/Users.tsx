@@ -26,7 +26,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const isAdmin = location.pathname.startsWith("/admin/users");
 
-  // const selectedUserId = localStorage.getItem('selectedUserId');
+  const selectedUserId = localStorage.getItem('selectedUserId');
 
   const { data, refetch } = useQuery(GETUSER, { variables: { id: userId }, fetchPolicy: "no-cache" });
 
@@ -47,7 +47,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm({
     defaultValues: {
       name: "", email: "", dob: "", gender: "",
-      blood_group: "", marital_status: "", phone: "", address: "", designation: "", department: "", city: "", state: "", pin_code: "", country: "", profile_pic: "",
+      blood_group: "", marital_status: "", phone: "", address: "", designation: "", department: "", city: "", state: "", pin_code: "", country: ""
     },
   });
 
@@ -223,12 +223,12 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           input: {
             id: userId || null, name: formData.name || null, email: formData.email || null, dob: formData.dob || null, gender: formData.gender || null,
             blood_group: formData.blood_group || null, marital_status: formData.marital_status || null, phone: formData.phone || null, address: formData.address || null, designation: formData.designation || null,
-            department: formData.department || null, city: formData.city || null, state: formData.state || null, pin_code: formData.pin_code || null, country: formData.country || null, profile_pic: formData.profile_pic || null,
+            department: formData.department || null, city: formData.city || null, state: formData.state || null, pin_code: formData.pin_code || null, country: formData.country || null
           }
         }
       });
+      console.log("Updated User",data);
       toastAlert('success', 'Saved Successfully!');
-
     } catch (error: any) {
       console.error("GraphQL Mutation Error:", error);
       toastAlert("error", `Failed to update profile: ${error.message}`);

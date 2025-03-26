@@ -11,7 +11,8 @@ import { GETUSER } from '../UserPage/UsersApi';
 import AppLoaderComponent from '../../component/customComponents/Loader/AppLoaderComponent';
 
 interface AssetDataType {
-  serial_no: string, type: string, name: string, version: string, specifications: string, condition: string, assigned_status: string
+  serial_no: string, 
+  type: string, name: string, version: string, specifications: string, condition: string, assigned_status: string
 }
 
 const Assets = () => {
@@ -86,15 +87,15 @@ const Assets = () => {
 
     setLoader(true);
 
-    if (isValid == false) {
-      toastAlert('error', 'Fill all the required fields');
-      setLoader(false);
-      return;
-    }
     try {
-      const res = await addAsset({ variables: { input: { type: assetDetails.type, serial_no: assetDetails.serial_no, name: assetDetails.name, version: assetDetails.version, specifications: assetDetails.specifications, condition: assetDetails.condition, assigned_status: assetDetails.assigned_status} } });
-      console.log('DATA', res);
-      toastAlert('success', 'Asset Added Successfully');
+      if (isValid == false) {
+        toastAlert('error', 'Fill all the required fields');
+      }
+      else{
+        const res = await addAsset({ variables: { input: { type: assetDetails.type, serial_no: assetDetails.serial_no, name: assetDetails.name, version: assetDetails.version, specifications: assetDetails.specifications, condition: assetDetails.condition, assigned_status: assetDetails.assigned_status} } });
+        console.log('DATA', res);
+        toastAlert('success', 'Asset Added Successfully');
+      }
     }
     catch (error) {
       toastAlert('error', 'Asset Adding Failed.');

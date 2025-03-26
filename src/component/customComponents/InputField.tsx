@@ -27,7 +27,7 @@ const InputField: React.FC<InputType> = ({ type, name, placeholder, options }) =
         password: {
             required: "Password is required",
             minLength: { value: 8, message: "Password must be at least 8 characters" },
-            pattern: { value : /^(?=.*[!@#$%^&*(),.<>?])(?=.*[0-9])(?=.*[A-Z]).+$/, message: 'Password must be atleast 5 characters and atleast include a uppercase letter, a number, and a special character.' },
+            pattern: { value : /^(?=.*[!@#$%^&*(),.<>?])(?=.*[0-9])(?=.*[A-Z]).+$/, message: 'Password must be atleast 8 characters and atleast include a uppercase letter, a number, and a special character.' },
         },
         confirmPassword: {
             required: "Confirm Password is required",
