@@ -22,7 +22,7 @@ const Login = () => {
     const onSubmit: SubmitHandler<FormType> = async (data) => {
         try{
             setLoading(true); 
-            const response = await login({ variables: data });
+            const response = await login({ variables: { email: data.email, password: data.password } });
             const token : string = response.data.login;
             if(token == 'No User'){
                 toastAlert('error','No user found with such email,Please First Register.');

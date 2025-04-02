@@ -1,8 +1,54 @@
-import { ApolloClient , InMemoryCache } from '@apollo/client';
+import { ApolloClient, from, HttpLink, InMemoryCache } from '@apollo/client';
+import { setContext } from '@apollo/client/link/context'
+import { onError } from '@apollo/client/link/error'
+import { jwtDecode } from 'jwt-decode'
+
+const httpLink = new HttpLink({
+  uri: process.env.REACT_APP_URL,
+})
+
+const tokenExpired = (token: string) => {
+  try {
+    const decoded: any = jwtDecode(token);
+    // console.log("Expiration time :", decoded.exp * 1000, Date.now());
+    return decoded.exp * 1000 < Date.now();
+  } catch (error) {
+    console.error("Error decoding token:", error);
+  }
+};
+
+const logoutFunction = () => {
+  localStorage.clear();
+  window.location.href = '/';
+}
+
+const errorLink = onError(({ graphQLErrors, networkError}) => {
+  const token = localStorage.getItem("token") || '';
+  if(graphQLErrors){
+    graphQLErrors.forEach((error) => {
+      if(error.extensions?.code === 'UNAUTHENTICATED' || tokenExpired(token)){
+        logoutFunction();
+      }
+    })
+  }
+  if (networkError) console.error(`Network error : ${networkError}`);
+})
+
+
+const authLink = setContext((_, { headers }) => {
+  const token = localStorage.getItem("token") || '';
+  return {
+    headers: {
+      ...headers,
+      Authorization: token ? `Bearer ${token}` : "",
+    }
+  }
+});
+
 
 const client = new ApolloClient({
-    uri : process.env.REACT_APP_URL,
-    cache : new InMemoryCache()
+  link: from([errorLink, authLink, httpLink]),
+  cache: new InMemoryCache(),
 })
 
 export default client;
