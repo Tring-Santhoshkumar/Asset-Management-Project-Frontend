@@ -140,7 +140,7 @@ const UsersPage = () => {
                 <TableCell>{user.status ?? " - "}</TableCell>
                 <TableCell>{user.assigned_assets?.length > 0 ? (
                   <ul>
-                    {user.assigned_assets?.map((asset: any) => (
+                    {user.assets?.map((asset: any) => (
                       <li key={asset.id}>{asset.serial_no} ({asset.type} - {asset.name})</li>
                     ))}
                   </ul>

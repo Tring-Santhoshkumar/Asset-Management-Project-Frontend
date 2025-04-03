@@ -10,7 +10,9 @@ export const GETALLASSETS = gql`
           serial_no
           specifications
           condition
-          assigned_to
+          assignedTo{
+            id
+          }
           assigned_status
           assigned_date
           return_date
@@ -19,9 +21,33 @@ export const GETALLASSETS = gql`
     }
 `
 
+export const GETALLASSETSPAGINATION = gql`
+  query GetAllAssetsPagination($page: Int!, $limit: Int!){
+    getAllAssetsPagination(page: $page, limit: $limit){
+        assets{
+          id
+          name
+          type
+          version
+          serial_no
+          specifications
+          condition
+          assignedTo{
+            id
+          }
+          assigned_status
+          assigned_date
+          return_date
+          deleted_at
+        }
+          totalCount
+  }
+  }
+`
+
 
 export const GETASSETBYID = gql`
-    query getAssetById($id: ID!){
+    query getAssetById($id: String!){
       asset(id: $id){
         id
         name
@@ -30,7 +56,9 @@ export const GETASSETBYID = gql`
         serial_no
         specifications
         condition
-        assigned_to
+        assignedTo{
+            id
+        }
         assigned_status
         assigned_date
         return_date
@@ -42,13 +70,15 @@ export const GETASSETBYID = gql`
 
 
 export const ASSIGNASSET = gql`
-  mutation AssignAsset($id: ID!, $assigned_to: ID!){
+  mutation AssignAsset($id: String!, $assigned_to: String!){
     assignAsset(id: $id, assigned_to: $assigned_to){
       id
       name
       type
       serial_no
-      assigned_to
+      assignedTo{
+        id
+      }
       assigned_status
       assigned_date
       deleted_at
@@ -58,21 +88,21 @@ export const ASSIGNASSET = gql`
 
 
 export const REQUESTASSET = gql`
-  mutation RequestAsset($id: ID!){
+  mutation RequestAsset($id: String!){
     requestAsset(id: $id)
   }
 `
 
 
 export const ADDASSET = gql`
-  mutation AddAsset($input: addAssetInput){
+  mutation AddAsset($input: addAssetInput!){
     addAsset(input: $input)
   }
 `
 
 
 export const GETASSETBYUSERID = gql`
-  query GetAssetByUserId($assigned_to: ID!){
+  query GetAssetByUserId($assigned_to: String!){
       assetByUserId(assigned_to: $assigned_to){
         id
         name
@@ -81,7 +111,9 @@ export const GETASSETBYUSERID = gql`
         serial_no
         specifications
         condition
-        assigned_to
+        assignedTo{
+          id
+        }
         assigned_status
         assigned_date
         return_date
@@ -92,7 +124,7 @@ export const GETASSETBYUSERID = gql`
 
 
 export const DELETEASSET = gql`
-  mutation DeleteAsset($id: ID!){
+  mutation DeleteAsset($id: String!){
     deleteAsset(id: $id)
   }
 `

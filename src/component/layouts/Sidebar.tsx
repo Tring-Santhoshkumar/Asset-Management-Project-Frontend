@@ -19,6 +19,7 @@ const Sidebar = () => {
             <li className={currentMenu === '/admin/dashboard' ? 'active' : ''}><Link to='/admin/dashboard'>Dashboard</Link></li>
             <li className={currentMenu.startsWith('/admin/users') ? 'active' : ''}><Link to='/admin/users'>Users</Link></li>
             <li className={currentMenu === '/admin/assets' ? 'active' : ''}><Link to='/admin/assets'>Assets</Link></li>
+            <li className={currentMenu === '/admin/notifications' ? 'active' : ''}><Link to='/admin/notifications'>Notifications</Link></li>
           </>
         ) : (
           <>

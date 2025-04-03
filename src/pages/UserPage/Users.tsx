@@ -3,10 +3,10 @@ import { useState, useEffect } from "react";
 import { DEASSIGNASSET, DELETEUSER, GETUSER, UPDATEUSER } from "./UsersApi";
 import { toastAlert } from "../../component/customComponents/toastify";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Badge, Box, Button, Card, CardActionArea, CardContent, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, Menu, MenuItem, Select, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
+import { Badge, Box, Button, Card, CardActionArea, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, Menu, MenuItem, Select, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import DevicesIcon from "@mui/icons-material/Devices";
-import { ASSIGNASSET, GETALLASSETS, GETASSETBYID, GETASSETBYUSERID, REQUESTASSET } from "../AdminPage/AssetsApi";
+import { ASSIGNASSET, GETALLASSETS, GETASSETBYUSERID, REQUESTASSET } from "../AdminPage/AssetsApi";
 import { useForm } from "react-hook-form";
 import { CREATE_NOTIFICATION, GETNOTIFICATIONSBYID } from "../AdminPage/NotificationsApi";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -26,7 +26,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const isAdmin = location.pathname.startsWith("/admin/users");
 
-  const selectedUserId = localStorage.getItem('selectedUserId');
+  // const selectedUserId = localStorage.getItem('selectedUserId');
 
   const { data, refetch } = useQuery(GETUSER, { variables: { id: userId }, fetchPolicy: "no-cache" });
 
@@ -122,7 +122,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   }, [assetByUserId]);
 
 
-  const filtering = assetData?.allAssets?.filter((asset: any) => asset.type == selectedType && asset.assigned_status == "Available");
+  const filtering = assetData?.allAssets?.filter((asset: any) => asset.type === selectedType && asset.assigned_status === "Available");
 
   const [assignLoader, setAssignLoader] = useState(false);
 
@@ -132,7 +132,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     setAssignLoader(true);
     try {
       const updatedUserId = localStorage.getItem("selectedUserId") || userId;
-      const res = await assignAsset({ variables: { id: selectedAssetId, assigned_to: updatedUserId } });
+      await assignAsset({ variables: { id: selectedAssetId, assigned_to: updatedUserId } });
       // console.log('RESULT : ',res);
       toastAlert('success', "Asset Assigned Successfully!");
       await refetchAssetByUser();
@@ -149,7 +149,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const onRequestAsset = async () => {
     try {
-      const res = await requestAsset({ variables: { id: selectedAssetId } });
+      await requestAsset({ variables: { id: selectedAssetId } });
       // console.log("Mutation Response:", res);
       const selectedUser = data?.user?.name;
       const selectedAsset = assetData?.allAssets?.find((asset: any) => asset.id === selectedAssetId);
@@ -173,7 +173,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   const onDeleteUser = async () => {
     setDeleteLoader(true);
     try {
-      const res = await deleteUser({ variables: { id: userId } });
+      await deleteUser({ variables: { id: userId } });
       // console.log("Mutation Response:", res);
       toastAlert('success', "User Deleted Successfull!");
     }
@@ -246,9 +246,9 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   };
 
   const notifications = getNotifications?.getNotificationsById || [];
-  const unseenCount = notifications.filter((notification: any) => notification.is_read == false).length;
+  const unseenCount = notifications.filter((notification: any) => notification.is_read === false).length;
   const approvedCount = notifications.filter((notification: any) => notification.approved).length;
-  const rejectedCount = notifications.filter((notification: any) => notification.is_read && notification.approved == false).length;
+  const rejectedCount = notifications.filter((notification: any) => notification.is_read && notification.approved === false).length;
   const tooltipTitle = `Unseen: ${unseenCount} | Approved: ${approvedCount} | Rejected: ${rejectedCount}`;
   let notificationList;
   if (notifications.length === 0) {
@@ -264,7 +264,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
         statusText = "Approved";
         StatusIcon = <CheckCircleIcon sx={{ color: "green", marginRight: "8px" }} />;
       } 
-      else if(notification.is_read && notification.approved == false){
+      else if(notification.is_read && notification.approved === false){
         statusText = "Rejected";
         statusColor = "red";
         StatusIcon = <CancelIcon sx={{ color: "red", marginRight: "8px" }} />;
@@ -407,18 +407,21 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
         <div className="userButtons">
           {isAdmin ? (
             <>
-              {data?.user?.status == 'Active' ?
+              {data?.user?.status === 'Active' ?
                 <>
                   <button type="button" className="userSubmit" onClick={handleOpen}>➕ Assign Asset</button>
                   <button type="button" className="userSubmit" onClick={handleOpenDelete}>Delete</button> </> : ''}
               <button type="button" className="userSubmit" onClick={() => navigate(-1)}>Cancel</button>
             </>
           ) : (
-            <button type="button" className="userSubmit" onClick={handleOpenRequest}>📩 Request Asset</button>
-          )}
-          {data?.user?.status == 'Active' ?
             <>
-              <button type="button" className="userSubmit" onClick={() => setEditEnable(editEnable == false ? true : false)}>Edit</button>
+              <button type="button" className="userSubmit" onClick={handleOpenRequest}>📩 Request Asset</button>
+              <button type="button" className="userSubmit" >Exchange Asset</button>
+            </>
+          )}
+          {data?.user?.status === 'Active' ?
+            <>
+              <button type="button" className="userSubmit" onClick={() => setEditEnable(editEnable === false ? true : false)}>Edit</button>
               <button type="submit" className="userSubmit">Save</button></> : ''}
 
           <Dialog open={open} onClose={handleClose}>

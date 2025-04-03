@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const GETUSER = gql`
-  query GetUser($id: ID!) {
+  query GetUser($id: String!) {
     user(id: $id) {
       id
       name
@@ -27,7 +27,7 @@ export const GETUSER = gql`
 
 
 export const UPDATEUSER = gql`
-mutation UpdateUser($input: updateUserInput) {
+mutation UpdateUser($input: UpdateUserInput!) {
   updateUser(input: $input) {
     id
     name
@@ -56,14 +56,14 @@ mutation UpdateUser($input: updateUserInput) {
 
 
 export const DELETEUSER = gql`
-  mutation DeleteUser($id: ID!){
+  mutation DeleteUser($id: String!){
     deleteUser(id: $id)
   }
 `
 
 
 export const DEASSIGNASSET = gql`
-  mutation DeAssignAsset($id: ID!){
+  mutation DeAssignAsset($id: String!){
     deAssignAsset(id: $id)
   }
 `
