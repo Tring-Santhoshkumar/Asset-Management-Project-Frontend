@@ -1,11 +1,11 @@
 import { useMutation, useQuery } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
-import { ADDUSER, GET_USERS } from "./AdminUsersApi";
+import { ADDUSER, GET_USERS, PAGINATEDUSERS } from "./AdminUsersApi";
 import { useState } from "react";
 import { AddCircleOutline } from "@mui/icons-material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
-import { Select, MenuItem, IconButton, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Dialog, Button, DialogActions, DialogContent, DialogTitle, TextField, CircularProgress } from "@mui/material";
+import { Select, MenuItem, IconButton, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Dialog, Button, DialogActions, DialogContent, DialogTitle, TextField, CircularProgress, TablePagination } from "@mui/material";
 import { toastAlert } from "../../component/customComponents/toastify";
 import AppLoaderComponent from "../../component/customComponents/Loader/AppLoaderComponent";
 
@@ -17,9 +17,9 @@ interface UserType {
 
 const UsersPage = () => {
 
-  const { data, refetch } = useQuery(GET_USERS, {
-    fetchPolicy: "no-cache",
-  });
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const { data, refetch } = useQuery(PAGINATEDUSERS, { variables: { page, limit: rowsPerPage}, fetchPolicy: "no-cache" });
   const [addUser] = useMutation(ADDUSER, {
     onCompleted() {
       refetch();
@@ -43,9 +43,9 @@ const UsersPage = () => {
     setFilter(e.target.value);
   }
 
-  const filtering = data?.users?.filter((user: any) => {
+  const filtering = data?.paginatedUsers?.users?.filter((user: any) => {
     if (!filter) return true;
-    return user?.role == filter;
+    return user?.role === filter;
   })
 
   const [open, setOpen] = useState(false);
@@ -103,6 +103,15 @@ const UsersPage = () => {
       }
     }
   }
+  const handlePage = (event: any, newPage: number) => {
+    setPage(newPage + 1);
+    refetch({ page: newPage + 1, limit: rowsPerPage });
+};
+const handleRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value));
+    setPage(1);
+    refetch({ page: 1, limit: parseInt(event.target.value) });
+};
 
   return (
     <div className="usersContainer">
@@ -138,7 +147,7 @@ const UsersPage = () => {
                 <TableCell>{user.designation ?? " - "}</TableCell>
                 <TableCell>{user.department ?? " - "}</TableCell>
                 <TableCell>{user.status ?? " - "}</TableCell>
-                <TableCell>{user.assigned_assets?.length > 0 ? (
+                <TableCell>{user.assets?.length > 0 ? (
                   <ul>
                     {user.assets?.map((asset: any) => (
                       <li key={asset.id}>{asset.serial_no} ({asset.type} - {asset.name})</li>
@@ -153,6 +162,15 @@ const UsersPage = () => {
             ))}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={data?.paginatedUsers?.totalCount || 0}
+          rowsPerPage={rowsPerPage}
+          page={page - 1}
+          onPageChange={handlePage}
+          onRowsPerPageChange={handleRowsPerPage}
+        />
       </TableContainer>
       <Dialog open={open} onClose={handleCloseAdd}>
         {loader && <AppLoaderComponent />}

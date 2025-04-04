@@ -132,7 +132,7 @@ const DashboardAdmin = () => {
           </PieChart>
         </div>
         <div className="chartContainer">
-          <Typography variant="h6" align="center">User Gender</Typography>
+          {/* <Typography variant="h6" align="center">User Gender</Typography>
           <PieChart width={320} height={340}>
             <Pie data={genderDataChart} cx={150} cy={170} innerRadius={55} outerRadius={80} fill="#8884d8" paddingAngle={5} dataKey="value">
               {genderDataChart?.map((_, index) => (
@@ -145,7 +145,9 @@ const DashboardAdmin = () => {
               return `${value?.charAt(0).toUpperCase() || "Unspecified"}${value?.slice(1) || ""} - (${gender?.value || 0})`;
             }} />
 
-          </PieChart>
+          </PieChart> */}
+          <Typography variant="h6" align="center">Last Updated User</Typography>
+            
         </div>
         <div className="chartContainer">
           <Typography variant="h6" align="center">Asset Assigned Status</Typography>

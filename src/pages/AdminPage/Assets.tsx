@@ -203,7 +203,7 @@ const Assets = () => {
               <p><strong>Version :</strong> {assetById.asset.version}</p>
               <p><strong>Specifications :</strong> {assetById.asset.specifications}</p>
               <p><strong>Condition :</strong> {assetById.asset.condition}</p>
-              <p><strong>Assigned To :</strong> {assetById.asset?.assignedTo?.id ?? " - "}</p>
+              <p><strong>Assigned To :</strong> {assetById.asset?.assignedTo?.name ?? " - "}</p>
               <p><strong>Status :</strong> {assetById.asset.assigned_status}</p>
               <p><strong>Return Date :</strong> {assetById.asset?.return_date ?? " - "}</p>
             </div>

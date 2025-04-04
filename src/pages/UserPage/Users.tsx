@@ -38,7 +38,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const [assignAsset] = useMutation(ASSIGNASSET);
 
-  const [requestAsset] = useMutation(REQUESTASSET);
+  // const [requestAsset] = useMutation(REQUESTASSET);
 
   const [deleteUser] = useMutation(DELETEUSER);
 
@@ -149,7 +149,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const onRequestAsset = async () => {
     try {
-      await requestAsset({ variables: { id: selectedAssetId } });
+      // await requestAsset({ variables: { id: selectedAssetId } });
       // console.log("Mutation Response:", res);
       const selectedUser = data?.user?.name;
       const selectedAsset = assetData?.allAssets?.find((asset: any) => asset.id === selectedAssetId);
@@ -221,7 +221,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
       const { data } = await updateUser({
         variables: {
           input: {
-            id: userId || null, name: formData.name || null, email: formData.email || null, dob: formData.dob || null, gender: formData.gender || null,
+            id: userId || null, name: formData.name || null, email: formData.email || null, dob: formData.dob ? new Date(formData.dob).toISOString() : null, gender: formData.gender || null,
             blood_group: formData.blood_group || null, marital_status: formData.marital_status || null, phone: formData.phone || null, address: formData.address || null, designation: formData.designation || null,
             department: formData.department || null, city: formData.city || null, state: formData.state || null, pin_code: formData.pin_code || null, country: formData.country || null
           }

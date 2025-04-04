@@ -1,4 +1,4 @@
-import { Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from '@mui/material';
+import { Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from '@mui/material';
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useEffect, useState } from 'react';
@@ -94,18 +94,18 @@ const Notifications = () => {
                 <TableCell>{notified.assetId.name}</TableCell>
                 <TableCell>{status[notified.id] === "approved" ?
                 ( 
-                <CheckCircleIcon style={{ color: "green", marginLeft:"70px" }} /> 
+                <Typography color='primary' variant='h6' sx={{ marginLeft:'40px'}}>Approved</Typography>
                 ) : 
                 status[notified.id] === "rejected" ?
                 (
-                  <CancelIcon style={{ color: "red", marginLeft:"70px" }} />
+                <Typography color='error' variant='h6' sx={{ marginLeft:'40px'}}>Rejected</Typography>
                 ) : (
                   <>
-                    <Button variant="contained" color="primary" onClick={() => handleNotificationClick(notified.id, true)} style={{ marginRight: "8px" }} disabled={status[notified.id] === "pending"}>
-                      Approve
+                    <Button variant="contained" color="primary" onClick={() => handleNotificationClick(notified.id, true)} style={{ marginRight: "8px", width:'90px' }} disabled={status[notified.id] === "pending"}>
+                    Approve
                     </Button>
-                    <Button variant="contained" color="error" onClick={() => handleNotificationClick(notified.id, false)} disabled={status[notified.id] === "pending"}>
-                      Reject
+                    <Button variant="contained" color="error" onClick={() => handleNotificationClick(notified.id, false)} style={{ width:'80px' }} disabled={status[notified.id] === "pending"}>
+                    Reject
                     </Button>
                   </>
                 )}

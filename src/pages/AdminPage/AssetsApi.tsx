@@ -11,7 +11,8 @@ export const GETALLASSETS = gql`
           specifications
           condition
           assignedTo{
-            id
+            name 
+            email
           }
           assigned_status
           assigned_date
@@ -57,7 +58,8 @@ export const GETASSETBYID = gql`
         specifications
         condition
         assignedTo{
-            id
+            name
+            email
         }
         assigned_status
         assigned_date
