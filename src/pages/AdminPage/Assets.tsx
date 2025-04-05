@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
 import { useState } from 'react';
 import 'primeicons/primeicons.css';
-import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography } from "@mui/material";
 import { AddCircleOutline, FilterList } from "@mui/icons-material";
 import { toastAlert } from '../../component/customComponents/toastify';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
@@ -122,6 +122,18 @@ const Assets = () => {
     handleClose();
   }
 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const handleChangePage = (event: any, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
     <div className="usersContainer">
       <div className="headerSection">
@@ -148,7 +160,7 @@ const Assets = () => {
               ))}
             </TableRow>
           </TableHead>
-          <TableBody>
+          {/* <TableBody>
             {filtering?.map((asset: any) => (
               <TableRow key={asset.id} hover>
                 <TableCell>{asset.serial_no}</TableCell>
@@ -161,7 +173,34 @@ const Assets = () => {
             ))}
           </TableBody>
         </Table>
-      </TableContainer>
+      </TableContainer> */}
+      <TableBody>
+          {filtering?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)?.map((asset: any) => (
+            <TableRow key={asset.id} hover>
+              <TableCell>{asset.serial_no}</TableCell>
+              <TableCell>{asset.type}</TableCell>
+              <TableCell>{asset.name}</TableCell>
+              <TableCell>{asset.condition}</TableCell>
+              <TableCell>{asset.assigned_status}</TableCell>
+              <TableCell>
+                <button onClick={() => handleOpen(asset.id)} className="viewButton">
+                  <RemoveRedEyeIcon />
+                </button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={filtering?.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+    </TableContainer>
       <Dialog open={open} onClose={handleClose}>
         {deleteLoader && <AppLoaderComponent />}
         <DialogTitle className="dialog-title">Asset Details for {assetById?.asset?.name}</DialogTitle>
