@@ -1,33 +1,32 @@
 import { ApolloClient, from, HttpLink, InMemoryCache } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
-import { jwtDecode } from 'jwt-decode'
 
 const httpLink = new HttpLink({
   uri: process.env.REACT_APP_URL,
 })
 
-const tokenExpired = (token: string) => {
-  try {
-    const decoded: any = jwtDecode(token);
-    // console.log("Expiration time :", decoded.exp * 1000, Date.now());
-    return decoded.exp * 1000 < Date.now();
-  } catch (error) {
-    console.error("Error decoding token:", error);
-  }
-};
+// const tokenExpired = (token: string) => {
+//   try {
+//     const decoded: any = jwtDecode(token);
+//     // console.log("Expiration time :", decoded.exp * 1000, Date.now());
+//     return decoded.exp * 1000 < Date.now();
+//   } catch (error) {
+//     console.error("Error decoding token:", error);  
+//   }
+// };
 
-const logoutFunction = () => {
+const handleLogout = () => {
   localStorage.clear();
   window.location.href = '/';
 }
 
 const errorLink = onError(({ graphQLErrors, networkError}) => {
-  const token = localStorage.getItem("token") || '';
   if(graphQLErrors){
     graphQLErrors.forEach((error) => {
-      if(error.extensions?.code === 'UNAUTHENTICATED' || tokenExpired(token)){
-        logoutFunction();
+      if(error.message.includes('jwt expired')){
+        // console.log('ERROR : ',error);
+        handleLogout();
       }
     })
   }

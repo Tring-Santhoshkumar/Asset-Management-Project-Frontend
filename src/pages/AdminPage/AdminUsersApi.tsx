@@ -11,7 +11,7 @@ export const GET_USERS = gql`
       department
       role
       status
-      assigned_assets{
+      assets{
         id
         serial_no
         name
@@ -20,6 +20,30 @@ export const GET_USERS = gql`
     }
   }
 `;
+
+export const PAGINATEDUSERS = gql`
+  query GetUsersPagination($page: Int!,$limit: Int!){
+    paginatedUsers(page: $page, limit: $limit){
+      users{
+        id
+        name
+        email
+        gender
+        designation
+        department
+        role
+        status
+        assets{
+          id
+          serial_no
+          name
+          type
+        }
+      }
+      totalCount
+    }
+  }
+`
 
 
 export const ADDUSER = gql`
@@ -30,7 +54,7 @@ export const ADDUSER = gql`
 
 
 export const CHANGEPASSWORD = gql`
-  mutation ChangePassword($id: ID!,$password: String!){
+  mutation ChangePassword($id: String!,$password: String!){
     changePassword(id: $id,password: $password)
   }
 `

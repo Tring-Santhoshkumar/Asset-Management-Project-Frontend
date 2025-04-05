@@ -26,3 +26,5 @@ yarn-error.log*
 /public
 package-lock.json
 /.scannerwork
+.env
+

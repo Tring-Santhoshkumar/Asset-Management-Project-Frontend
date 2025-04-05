@@ -1,4 +1,3 @@
-import Register from '../../pages/RegisterPage/Register'
 import Login from '../../pages/LoginPage/Login'
 import DashboardAdmin from '../../pages/AdminPage/DashboardAdmin';
 import Users from '../../pages/UserPage/Users';
@@ -6,6 +5,7 @@ import Assets from '../../pages/AdminPage/Assets';
 import AdminUsers from '../../pages/AdminPage/AdminUsers';
 import ChangePassword from '../../pages/ChangePasswordPage/ChangePassword';
 import LandingPage from '../../pages/LandingPage/LandingPage';
+import Notifications from '../../pages/AdminPage/Notifications';
 
 export const publicRoutes = [
     {
@@ -43,4 +43,8 @@ export const privateRoutes = [
         path: "/admin/users/:userId",
         element: <Users userId={localStorage.getItem("selectedUserId") || ""} />
     },
+    {
+        path: "admin/notifications",
+        element: <Notifications />
+    }
 ]

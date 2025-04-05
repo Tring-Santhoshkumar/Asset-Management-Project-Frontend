@@ -1,20 +1,45 @@
 import { gql } from "@apollo/client";
 
 export const GETNOTIFICATIONS = gql`
-    query GetNotifications{
-        getNotifications{
+    query GetNotifications($page: Int!,$limit: Int!){
+        getNotifications(page: $page,limit: $limit){
+            notifications{
+              id
+              message
+              is_read
+              approved
+              rejected
+              created_at
+              userId{
+                name
+                email
+              }
+              assetId{
+                type
+                name
+                serial_no
+              }
+            }
+            totalCount
+        }
+    }
+`
+
+export const GETNOTIFICATIONSICON = gql`
+  query GetAllNotificationsIcon{
+    getAllNotificationsIcon{
             id
             message
             is_read
             approved
             rejected
             created_at
-        }
     }
+  }
 `
 
 export const GETNOTIFICATIONSBYID = gql`
-  query GetNotificationsById($user_id: ID!){
+  query GetNotificationsById($user_id: String!){
     getNotificationsById(user_id: $user_id){
             id
             message
@@ -27,7 +52,7 @@ export const GETNOTIFICATIONSBYID = gql`
 `
 
 export const CREATE_NOTIFICATION = gql`
-  mutation CreateNotification($user_id: ID!, $asset_id: ID!, $message: String!) {
+  mutation CreateNotification($user_id: String!, $asset_id: String!, $message: String!) {
     createNotification(user_id: $user_id, asset_id: $asset_id, message: $message) {
       id
       message
@@ -40,7 +65,7 @@ export const CREATE_NOTIFICATION = gql`
 `;
 
 export const READNOTIFICATIONS = gql`
-    mutation ReadNotifications($id: ID!,$choice: Boolean!){
+    mutation ReadNotifications($id: String!,$choice: Boolean!){
         readNotifications(id: $id,choice: $choice)
     }
 `
