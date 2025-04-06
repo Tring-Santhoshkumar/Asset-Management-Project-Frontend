@@ -19,6 +19,11 @@ export const GETNOTIFICATIONS = gql`
                 name
                 serial_no
               }
+              exchangeAssetId{
+                type
+                name
+                serial_no
+              }
             }
             totalCount
         }
@@ -62,7 +67,22 @@ export const CREATE_NOTIFICATION = gql`
       rejected
     }
   }
-`;
+`
+
+export const CREATE_EXCHANGE_NOTIFICATION = gql`
+  mutation CreateExchangeNotification($user_id: String!, $asset_id: String!, $exchange_asset_id: String!, $message: String!){
+    createExchangeNotification(user_id: $user_id, asset_id: $asset_id, exchange_asset_id: $exchange_asset_id, message: $message){
+      id
+      message
+      is_read
+      created_at
+      approved
+      rejected
+    }
+  }
+`
+
+
 
 export const READNOTIFICATIONS = gql`
     mutation ReadNotifications($id: String!,$choice: Boolean!){

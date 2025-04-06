@@ -91,7 +91,7 @@ const Notifications = () => {
                 <TableCell>{notified.userId.email}</TableCell>
                 <TableCell>{notified.assetId.serial_no}</TableCell>
                 <TableCell>{notified.assetId.type}</TableCell>
-                <TableCell>{notified.assetId.name}</TableCell>
+                <TableCell>{notified.exchangeAssetId?.name ? (notified?.assetId?.name + ' -> ' + notified.exchangeAssetId?.name + ' (Exchange)') : notified?.assetId?.name}</TableCell>
                 <TableCell>{status[notified.id] === "approved" ?
                 ( 
                 <Typography color='primary' variant='h6' sx={{ marginLeft:'40px'}}>Approved</Typography>

@@ -128,7 +128,7 @@ const handleRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
           <button className="addButton" onClick={handleOpenAdd}><AddCircleOutline/> Add User</button>
         </div>
       </div>
-      <TableContainer component={Paper} className="tableContainer" style={{ maxHeight: "540px", overflowY: "auto" }}>
+      <TableContainer component={Paper} className="tableContainer" style={{ maxHeight: "510px", overflowY: "auto",position: "relative"}}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -162,7 +162,24 @@ const handleRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
             ))}
           </TableBody>
         </Table>
-        <TablePagination
+        <div style={{
+    position: 'sticky',
+    bottom: 0,
+    backgroundColor: '#fff',
+    zIndex: 2,
+    borderTop: '1px solid #e0e0e0'
+  }}>
+    <TablePagination
+      rowsPerPageOptions={[5, 10, 25]}
+      component="div"
+      count={data?.paginatedUsers?.totalCount || 0}
+      rowsPerPage={rowsPerPage}
+      page={page - 1}
+      onPageChange={handlePage}
+      onRowsPerPageChange={handleRowsPerPage}
+    />
+  </div>
+        {/* <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={data?.paginatedUsers?.totalCount || 0}
@@ -170,7 +187,7 @@ const handleRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
           page={page - 1}
           onPageChange={handlePage}
           onRowsPerPageChange={handleRowsPerPage}
-        />
+        /> */}
       </TableContainer>
       <Dialog open={open} onClose={handleCloseAdd}>
         {loader && <AppLoaderComponent />}

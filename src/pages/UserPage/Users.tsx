@@ -8,7 +8,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import DevicesIcon from "@mui/icons-material/Devices";
 import { ASSIGNASSET, GETALLASSETS, GETASSETBYUSERID, REQUESTASSET } from "../AdminPage/AssetsApi";
 import { useForm } from "react-hook-form";
-import { CREATE_NOTIFICATION, GETNOTIFICATIONSBYID } from "../AdminPage/NotificationsApi";
+import { CREATE_EXCHANGE_NOTIFICATION, CREATE_NOTIFICATION, GETNOTIFICATIONSBYID } from "../AdminPage/NotificationsApi";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -36,6 +36,8 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const [createNotification] = useMutation(CREATE_NOTIFICATION);
 
+  const [createExchangeNotification] = useMutation(CREATE_EXCHANGE_NOTIFICATION);
+
   const [assignAsset] = useMutation(ASSIGNASSET);
 
   // const [requestAsset] = useMutation(REQUESTASSET);
@@ -61,6 +63,8 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const [openRequest, setOpenRequest] = useState(false);
 
+  const [openExchange, setOpenExchange] = useState(false);
+
   const [openDelete, setOpenDelete] = useState(false);
 
   const [openAssetStatus, setOpenAssetStatus] = useState(false);
@@ -68,6 +72,8 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   const [selectedType, setSelectedType] = useState<string>("");
 
   const [selectedAssetId, setSelectedAssetId] = useState<string>("");
+
+  const [selectedExchangeAssetId, setSelectedExchangeAssetId] = useState<string>("");
 
   const [selectedView, setSelectedView] = useState("profile");
 
@@ -85,6 +91,14 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const handleCloseRequest = () => {
     setOpenRequest(false);
+  }
+
+  const handleOpenExchange = () => {
+    setOpenExchange(true);
+  }
+
+  const handleCloseExchange = () => {
+    setOpenExchange(false);
   }
 
   const handleOpenDelete = () => {
@@ -170,6 +184,28 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     }
   };
 
+  const onExchangeAsset = async () => {
+    try {
+      const selectedUser = data?.user?.name;
+      const selectedAsset = assetData?.allAssets?.find((asset: any) => asset.id === selectedAssetId);
+      const selectedExchangeAsset = assetData?.allAssets?.find((asset: any) => asset.id === selectedExchangeAssetId);
+      const msg = `User ${selectedUser} requested exchange ${selectedExchangeAsset.name} -> ${selectedAsset.name}.`
+      await createExchangeNotification({
+        variables: {
+          user_id: userId,
+          asset_id: selectedExchangeAssetId,
+          exchange_asset_id: selectedAssetId,
+          message: msg,
+        }
+      });
+      toastAlert('success', "Asset Exchanged Successfully,You'll be notified through mail!");
+    }
+    catch (error: any) {
+      console.error("Mutation Error:", error);
+      toastAlert('error', "Asset Exchange Failed.");
+    }
+  };
+
   const onDeleteUser = async () => {
     setDeleteLoader(true);
     try {
@@ -227,7 +263,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           }
         }
       });
-      console.log("Updated User",data);
+      console.log("Updated User", data);
       toastAlert('success', 'Saved Successfully!');
     } catch (error: any) {
       console.error("GraphQL Mutation Error:", error);
@@ -259,12 +295,12 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
       let statusText = "Not Seen";
       let statusColor = "blue";
       let StatusIcon = <VisibilityIcon sx={{ color: "blue", marginRight: "8px" }} />;
-      if(notification.approved){
+      if (notification.approved) {
         statusColor = "green";
         statusText = "Approved";
         StatusIcon = <CheckCircleIcon sx={{ color: "green", marginRight: "8px" }} />;
-      } 
-      else if(notification.is_read && notification.approved === false){
+      }
+      else if (notification.is_read && notification.approved === false) {
         statusText = "Rejected";
         statusColor = "red";
         StatusIcon = <CancelIcon sx={{ color: "red", marginRight: "8px" }} />;
@@ -416,7 +452,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
           ) : (
             <>
               <button type="button" className="userSubmit" onClick={handleOpenRequest}>📩 Request Asset</button>
-              <button type="button" className="userSubmit" >Exchange Asset</button>
+              <button type="button" className="userSubmit" onClick={handleOpenExchange}>Exchange Asset</button>
             </>
           )}
           {data?.user?.status === 'Active' ?
@@ -484,6 +520,55 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
               <Button onClick={() => { handleCloseRequest(); onRequestAsset(); }} color="success">Save</Button>
             </DialogActions>
           </Dialog>
+
+          <Dialog open={openExchange} onClose={handleCloseExchange}>
+            <DialogTitle>Exchange Asset</DialogTitle>
+            <DialogContent>
+              <FormControl sx={{ m: 1, minWidth: 500 }}>
+                <InputLabel htmlFor="grouped-select">Your Assets</InputLabel>
+                <Select value={selectedExchangeAssetId} id="grouped-select" label="Grouping" onChange={(e) => setSelectedExchangeAssetId(e.target.value)}>
+                  <MenuItem value=""><em>None</em></MenuItem>
+                  {assetByUserId?.assetByUserId?.map((asset: any) => (
+                    <MenuItem key={asset.id} value={asset.id}>
+                    {asset.serial_no}  {asset.name} (Condition: {asset.condition})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </DialogContent>
+
+            <DialogContent>
+              <FormControl sx={{ m: 1, minWidth: 500 }}>
+                <InputLabel htmlFor="grouped-select">Asset Type</InputLabel>
+                <Select value={selectedType} id="grouped-select" label="Grouping" onChange={(e) => setSelectedType(e.target.value)} >
+                  <MenuItem value=""><em>None</em></MenuItem>
+                  <MenuItem value="Laptop">Laptop</MenuItem>
+                  <MenuItem value="Phone">Phone</MenuItem>
+                  <MenuItem value="Tablet">Tablet</MenuItem>
+                </Select>
+              </FormControl>
+            </DialogContent>
+
+            <DialogContent>
+              <FormControl sx={{ m: 1, minWidth: 500 }} disabled={!selectedType}>
+                <InputLabel htmlFor="grouped-select">Target Asset</InputLabel>
+                <Select value={selectedAssetId} id="grouped-select" label="Grouping" onChange={(e) => setSelectedAssetId(e.target.value)}>
+                  <MenuItem value=""><em>None</em></MenuItem>
+                  {filtering?.map((asset: any) => (
+                    <MenuItem key={asset.id} value={asset.id}>
+                      {asset.name} (Version: {asset.version})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </DialogContent>
+
+            <DialogActions>
+              <Button onClick={handleCloseExchange} color="primary">Close</Button>
+              <Button onClick={() => { handleCloseExchange(); onExchangeAsset(); }} color="success">Request Exchange</Button>
+            </DialogActions>
+          </Dialog>
+
 
           <Dialog open={openDelete} onClose={handleCloseDelete}>
             {deleteLoader && <AppLoaderComponent />}

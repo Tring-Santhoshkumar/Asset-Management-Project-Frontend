@@ -9,3 +9,19 @@ export const USERCHART = gql`
         }
     }
 `
+
+
+export const LATESTUPDATEDUSER = gql`
+    query LatestUpdatedUser{
+        latestUpdatedUser{
+            latest{
+                name
+                email
+            }
+            oldest{
+                name
+                email
+            }
+        }
+    }
+`
