@@ -75,7 +75,7 @@ const InputField: React.FC<InputType> = ({ type, name, placeholder, options }) =
                 />
             }
             {/* // ( <input type={type} placeholder={placeholder}  className='formInput' {...register(name, validation[name])} />)} */}
-            {errors?.[name] && <span className="formError">{errors[name]?.message as string}</span>}
+            {errors?.[name] && <span className="formError" data-testid={`${name}Error`}>{errors[name]?.message as string}</span>}
         </div>
     );
 };

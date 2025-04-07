@@ -6,16 +6,6 @@ const httpLink = new HttpLink({
   uri: process.env.REACT_APP_URL,
 })
 
-// const tokenExpired = (token: string) => {
-//   try {
-//     const decoded: any = jwtDecode(token);
-//     // console.log("Expiration time :", decoded.exp * 1000, Date.now());
-//     return decoded.exp * 1000 < Date.now();
-//   } catch (error) {
-//     console.error("Error decoding token:", error);  
-//   }
-// };
-
 const handleLogout = () => {
   localStorage.clear();
   window.location.href = '/';
