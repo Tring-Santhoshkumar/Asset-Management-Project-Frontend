@@ -4,15 +4,18 @@
     height: 100vh;
     justify-content: center;
     align-items: center;
-    background-color: #f5f5f5;
+    // background-color: #f5f5f5;
     font-family: 'Inter', sans-serif;
+    background-size: cover;
+    background-image: url('../../assets/loginBG.jpg');
+
 
     .registerForm {
         width: 400px;
         background: white;
         padding: 30px;
         border-radius: 10px;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.6);
 
         .registerHeading {
             font-size: 24px;

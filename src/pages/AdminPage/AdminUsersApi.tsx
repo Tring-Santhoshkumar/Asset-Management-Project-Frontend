@@ -22,8 +22,8 @@ export const GET_USERS = gql`
 `;
 
 export const PAGINATEDUSERS = gql`
-  query GetUsersPagination($page: Int!,$limit: Int!){
-    paginatedUsers(page: $page, limit: $limit){
+  query GetUsersPagination($page: Int!,$limit: Int!, $role: UserRole){
+    paginatedUsers(page: $page, limit: $limit, role: $role){
       users{
         id
         name
@@ -58,3 +58,4 @@ export const CHANGEPASSWORD = gql`
     changePassword(id: $id,password: $password)
   }
 `
+

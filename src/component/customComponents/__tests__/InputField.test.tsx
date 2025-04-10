@@ -19,7 +19,7 @@ describe("InputField Component", () => {
       </Wrapper>
     );
     screen.debug();
-    expect(screen.getByLabelText("Enter email")).toBeInTheDocument();
+    expect(screen.getByLabelText("Enter   email")).toBeInTheDocument();
     expect(screen.getByLabelText("Enter password")).toBeInTheDocument();
   });
   test("Valid Email Check", () => {

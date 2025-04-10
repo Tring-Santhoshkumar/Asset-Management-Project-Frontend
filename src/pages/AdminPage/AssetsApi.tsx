@@ -23,8 +23,8 @@ export const GETALLASSETS = gql`
 `
 
 export const GETALLASSETSPAGINATION = gql`
-  query GetAllAssetsPagination($page: Int!, $limit: Int!){
-    getAllAssetsPagination(page: $page, limit: $limit){
+  query GetAllAssetsPagination($page: Int!, $limit: Int!, $assigned_status: AssignedStatus){
+    getAllAssetsPagination(page: $page, limit: $limit, assigned_status: $assigned_status){
         assets{
           id
           name

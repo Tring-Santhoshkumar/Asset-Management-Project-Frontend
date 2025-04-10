@@ -1,11 +1,11 @@
 import { useMutation, useQuery } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
-import { ADDUSER, GET_USERS, PAGINATEDUSERS } from "./AdminUsersApi";
+import { ADDUSER, PAGINATEDUSERS } from "./AdminUsersApi";
 import { useState } from "react";
 import { AddCircleOutline } from "@mui/icons-material";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
-import { Select, MenuItem, IconButton, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Dialog, Button, DialogActions, DialogContent, DialogTitle, TextField, CircularProgress, TablePagination } from "@mui/material";
+import { MenuItem, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Dialog, 
+Button, DialogActions, DialogContent, DialogTitle, TextField, TablePagination } from "@mui/material";
 import { toastAlert } from "../../component/customComponents/toastify";
 import AppLoaderComponent from "../../component/customComponents/Loader/AppLoaderComponent";
 
@@ -15,11 +15,29 @@ interface UserType {
   role: string
 }
 
+interface Asset {
+  id: string;
+  serial_no: string;
+  type: string;
+  name: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  designation?: string;
+  department?: string;
+  status?: string;
+  assets?: Asset[] | null;
+}
+
 const UsersPage = () => {
 
-  const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const { data, refetch } = useQuery(PAGINATEDUSERS, { variables: { page, limit: rowsPerPage}, fetchPolicy: "no-cache" });
+  const [page, setPage] = useState<number>(1);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(5);
+  const [filter, setFilter] = useState<string>("");
+  const { data, refetch } = useQuery(PAGINATEDUSERS, { variables: { page, limit: rowsPerPage, role: filter || null, }, fetchPolicy: "no-cache" });
   const [addUser] = useMutation(ADDUSER, {
     onCompleted() {
       refetch();
@@ -29,24 +47,22 @@ const UsersPage = () => {
     },
   });
   const navigate = useNavigate();
-  const [filter, setFilter] = useState("");
   const [userData, setUserData] = useState<UserType>({ name: "", email: "", role: "user" });
   const [errors, setErrors] = useState<Partial<UserType>>({ name: "", email: "", role: "user" });
 
-  const handleChangeAdding = (e: any) => {
+  const handleChangeAdding = (e:  React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setUserData({ ...userData, [name]: value });
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFilter(e.target.value);
+    setPage(1);
+    refetch({ page: 1, limit: rowsPerPage, role: e.target.value || null});
   }
 
-  const filtering = data?.paginatedUsers?.users?.filter((user: any) => {
-    if (!filter) return true;
-    return user?.role === filter;
-  })
+  const filtering = data?.paginatedUsers?.users || [];
 
   const [open, setOpen] = useState(false);
 
@@ -59,19 +75,31 @@ const UsersPage = () => {
   }
   const [loader, setLoader] = useState(false);
   const validateForm = () => {
-    let newErrors: Partial<UserType> = {};
+    const newErrors: Partial<UserType> = {};
 
-    if (!userData.name.trim()) newErrors.name = 'Name is required';
-    else if (userData.name.length < 3) newErrors.name = "Name must be at least 3 characters";
-    else if (!/^[A-Za-z\s]+$/.test(userData.name)) newErrors.name = 'Name must only contains alphabets';
+    if (!userData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    else if (userData.name.length < 3){
+      newErrors.name = "Name must be at least 3 characters";
+    }
+    else if (!/^[A-Za-z\s]+$/.test(userData.name)) {
+      newErrors.name = 'Name must only contains alphabets';
+    }
 
-    if (!userData.email.trim()) newErrors.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) newErrors.email = "Invalid email format";
+    if (!userData.email.trim()){
+      newErrors.email = "Email is required";
+    } 
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
+      newErrors.email = "Invalid email format";
+    }
 
-    if (!userData.role) newErrors.role = "Role is required";
+    if (!userData.role) {
+      newErrors.role = "Role is required";
+    }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length == 0;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleAddSubmit = async () => {
@@ -81,7 +109,7 @@ const UsersPage = () => {
       const isValid = requiredFields.every(field => userData[field as keyof UserType]?.toString().trim());
       setLoader(true);
 
-      if (isValid == false) {
+      if (isValid === false) {
         toastAlert("error", 'Fill all the required fields');
         return;
       }
@@ -103,15 +131,15 @@ const UsersPage = () => {
       }
     }
   }
-  const handlePage = (event: any, newPage: number) => {
+  const handlePage = (event: unknown, newPage: number) => {
     setPage(newPage + 1);
-    refetch({ page: newPage + 1, limit: rowsPerPage });
-};
-const handleRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    refetch({ page: newPage + 1, limit: rowsPerPage, role: filter || null });
+  };
+  const handleRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value));
     setPage(1);
-    refetch({ page: 1, limit: parseInt(event.target.value) });
-};
+    refetch({ page: 1, limit: parseInt(event.target.value), role: filter || null });
+  };
 
   return (
     <div className="usersContainer">
@@ -121,14 +149,14 @@ const handleRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
           <div className="filterSelectContainer">
             <select className="filterSelect" name="role" onChange={handleChange} value={filter}>
               <option value="">All Roles</option>
-              <option value="admin">Admins</option>
-              <option value="user">Users</option>
+              <option value="ADMIN">Admins</option>
+              <option value="USER">Users</option>
             </select>
           </div>
-          <button className="addButton" onClick={handleOpenAdd}><AddCircleOutline/> Add User</button>
+          <button className="addButton" onClick={handleOpenAdd}><AddCircleOutline /> Add User</button>
         </div>
       </div>
-      <TableContainer component={Paper} className="tableContainer" style={{ maxHeight: "510px", overflowY: "auto",position: "relative"}}>
+      <TableContainer component={Paper} className="tableContainer" style={{ maxHeight: "510px", overflowY: "auto", position: "relative" }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -140,16 +168,21 @@ const handleRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filtering?.map((user: any) => (
+            {filtering?.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} align="center">No users found.</TableCell>
+              </TableRow>
+            )}
+            {filtering?.map((user: User) => (
               <TableRow key={user.id}>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.designation ?? " - "}</TableCell>
                 <TableCell>{user.department ?? " - "}</TableCell>
                 <TableCell>{user.status ?? " - "}</TableCell>
-                <TableCell>{user.assets?.length > 0 ? (
+                <TableCell>{(user?.assets?? []).length > 0 ? (
                   <ul>
-                    {user.assets?.map((asset: any) => (
+                    {user.assets?.map((asset: Asset) => (
                       <li key={asset.id}>{asset.serial_no} ({asset.type} - {asset.name})</li>
                     ))}
                   </ul>
@@ -162,32 +195,17 @@ const handleRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
             ))}
           </TableBody>
         </Table>
-        <div style={{
-    position: 'sticky',
-    bottom: 0,
-    backgroundColor: '#fff',
-    zIndex: 2,
-    borderTop: '1px solid #e0e0e0'
-  }}>
-    <TablePagination
-      rowsPerPageOptions={[5, 10, 25]}
-      component="div"
-      count={data?.paginatedUsers?.totalCount || 0}
-      rowsPerPage={rowsPerPage}
-      page={page - 1}
-      onPageChange={handlePage}
-      onRowsPerPageChange={handleRowsPerPage}
-    />
-  </div>
-        {/* <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={data?.paginatedUsers?.totalCount || 0}
-          rowsPerPage={rowsPerPage}
-          page={page - 1}
-          onPageChange={handlePage}
-          onRowsPerPageChange={handleRowsPerPage}
-        /> */}
+        <div className="pagination">
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={data?.paginatedUsers?.totalCount || 0}
+            rowsPerPage={rowsPerPage}
+            page={page - 1}
+            onPageChange={handlePage}
+            onRowsPerPageChange={handleRowsPerPage}
+          />
+        </div>
       </TableContainer>
       <Dialog open={open} onClose={handleCloseAdd}>
         {loader && <AppLoaderComponent />}

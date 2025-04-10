@@ -1,78 +1,96 @@
 import { Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from '@mui/material';
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 import { GETNOTIFICATIONS, READNOTIFICATIONS } from './NotificationsApi';
 import { toastAlert } from '../../component/customComponents/toastify';
 import AppLoaderComponent from '../../component/customComponents/Loader/AppLoaderComponent';
- 
-interface StatusType{
-    [key: string]: "pending" | "approved" | "rejected";
+
+interface StatusType {
+  [key: string]: "pending" | "approved" | "rejected";
 }
+
+interface Notification {
+  id: string;
+  userId: {
+    name: string;
+    email: string;
+  };
+  assetId: {
+    serial_no: string;
+    type: string;
+    name: string;
+  };
+  exchangeAssetId?: {
+    name: string;
+  } | null;
+}
+
+
 const Notifications = () => {
-    const [page, setPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
-    const { data, refetch } = useQuery(GETNOTIFICATIONS, { variables: { page, limit: rowsPerPage }, fetchPolicy: "no-cache" });
-    const [readNotifications] = useMutation(READNOTIFICATIONS);
-    const [loader, setLoader] = useState(false);
-    const [status,setStatus] = useState<StatusType>({});
-    const [filter, setFilter] = useState("all");
-    useEffect(() => {
-        if (data?.getNotifications?.notifications) {
-          const newStatus: StatusType = {};
-          data.getNotifications.notifications.forEach((notified: any) => {
-            if (notified.approved) newStatus[notified.id] = "approved";
-            else if (notified.rejected) newStatus[notified.id] = "rejected";
-          });
-          setStatus(newStatus);
-        }
-      }, [data]);
-    const filteringNotifications = data?.getNotifications?.notifications?.filter((notified: any) => {
-        if(filter === "approved") return status[notified.id] === "approved";
-        if(filter === "rejected") return status[notified.id] === "rejected";
-        return true;
-    });
-    const handleNotificationClick = async (id: string, choice: boolean) => {
-        setLoader(true);
-        setStatus((prev) => ({ ...prev, [id]: "pending" }));
-        try {
-          await readNotifications({ variables: { id, choice } });
-          refetch();
-          toastAlert('success','Notification Cleared as per Request');
-          setStatus((prev) => ({ ...prev, [id]: choice ? "approved" : "rejected" }));
-        } catch (error: any) {
-          toastAlert('error',error);
-          setStatus((prev) => ({ ...prev, [id]: "pending" }));
-        }
-        finally{
-          setLoader(false);
-        }
-      }
-    const handlePage = (event: any, newPage: number) => {
-        setPage(newPage + 1);
-        refetch({ page: newPage + 1, limit: rowsPerPage });
-    };
-    const handleRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setRowsPerPage(parseInt(event.target.value));
-        setPage(1);
-        refetch({ page: 1, limit: parseInt(event.target.value) });
-    };
+  
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const { data, refetch } = useQuery(GETNOTIFICATIONS, { variables: { page, limit: rowsPerPage }, fetchPolicy: "no-cache" });
+  const [readNotifications] = useMutation(READNOTIFICATIONS);
+  const [loader, setLoader] = useState(false);
+  const [status, setStatus] = useState<StatusType>({});
+  const [filter, setFilter] = useState<string>("");
+  useEffect(() => {
+    if (data?.getNotifications?.notifications) {
+      const newStatus: StatusType = {};
+      data.getNotifications.notifications.forEach((notified: StatusType) => {
+        if (notified.approved) newStatus[notified.id] = "approved";
+        else if (notified.rejected) newStatus[notified.id] = "rejected";
+      });
+      setStatus(newStatus);
+    }
+  }, [data]);
+  const filteringNotifications = data?.getNotifications?.notifications || [];
+  const handleNotificationClick = async (id: string, choice: boolean) => {
+    setLoader(true);
+    setStatus((prev) => ({ ...prev, [id]: "pending" }));
+    try {
+      await readNotifications({ variables: { id, choice } });
+      refetch();
+      toastAlert('success', 'Notification Cleared as per Request');
+      setStatus((prev) => ({ ...prev, [id]: choice ? "approved" : "rejected" }));
+    } catch (error: any) {
+      toastAlert('error', error);
+      setStatus((prev) => ({ ...prev, [id]: "pending" }));
+    }
+    finally {
+      setLoader(false);
+    }
+  }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFilter(e.target.value);
+    setPage(1);
+    refetch({ page: 1, limit: rowsPerPage, status: e.target.value || null});
+  }
+  const handlePage = (event: unknown, newPage: number) => {
+    setPage(newPage + 1);
+    refetch({ page: newPage + 1, limit: rowsPerPage, status: filter || null });
+  };
+  const handleRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value));
+    setPage(1);
+    refetch({ page: 1, limit: parseInt(event.target.value), status: filter || null });
+  };
   return (
     <div className="usersContainer">
-          <div className="headerSection">
-            <h2 className="adminUsersHeading">List of All Notifications</h2>
-            <div className="actions">
-              <div className="filterSelectContainer">
-                <select className="filterSelect" name="assigned_status" value={filter} onChange={(e) => setFilter(e.target.value)}>
-                  <option value="all">All Notifications</option>
-                  <option value="approved">Approved Assets</option>
-                  <option value="rejected">Rejected Assets</option>
-                </select>
-              </div>
-            </div>
+      <div className="headerSection">
+        <h2 className="adminUsersHeading">List of All Notifications</h2>
+        <div className="actions">
+          <div className="filterSelectContainer">
+            <select className="filterSelect" name="assigned_status" value={filter} onChange={handleChange}>
+              <option value="">All Notifications</option>
+              <option value="approved">Approved Assets</option>
+              <option value="rejected">Rejected Assets</option>
+            </select>
           </div>
-          <TableContainer component={Paper} style={{ maxHeight: 540, overflowY: "auto" }}>
+        </div>
+      </div>
+      <TableContainer component={Paper} style={{ maxHeight: "490px", overflowY: "auto" }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -84,8 +102,13 @@ const Notifications = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-          {loader && <AppLoaderComponent />}
-            {filteringNotifications?.map((notified: any) => (
+            {loader && <AppLoaderComponent />}
+            {filteringNotifications?.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} align="center">No users found.</TableCell>
+              </TableRow>
+            )}
+            {filteringNotifications?.map((notified: Notification) => (
               <TableRow key={notified.id} hover>
                 <TableCell>{notified.userId.name}</TableCell>
                 <TableCell>{notified.userId.email}</TableCell>
@@ -93,36 +116,38 @@ const Notifications = () => {
                 <TableCell>{notified.assetId.type}</TableCell>
                 <TableCell>{notified.exchangeAssetId?.name ? (notified?.assetId?.name + ' -> ' + notified.exchangeAssetId?.name + ' (Exchange)') : notified?.assetId?.name}</TableCell>
                 <TableCell>{status[notified.id] === "approved" ?
-                ( 
-                <Typography color='primary' variant='h6' sx={{ marginLeft:'40px'}}>Approved</Typography>
-                ) : 
-                status[notified.id] === "rejected" ?
-                (
-                <Typography color='error' variant='h6' sx={{ marginLeft:'40px'}}>Rejected</Typography>
-                ) : (
-                  <>
-                    <Button variant="contained" color="primary" onClick={() => handleNotificationClick(notified.id, true)} style={{ marginRight: "8px", width:'90px' }} disabled={status[notified.id] === "pending"}>
-                    Approve
-                    </Button>
-                    <Button variant="contained" color="error" onClick={() => handleNotificationClick(notified.id, false)} style={{ width:'80px' }} disabled={status[notified.id] === "pending"}>
-                    Reject
-                    </Button>
-                  </>
-                )}
+                  (
+                    <Typography color='primary' variant='h6' sx={{ marginLeft: '40px' }}>Approved</Typography>
+                  ) :
+                  status[notified.id] === "rejected" ?
+                    (
+                      <Typography color='error' variant='h6' sx={{ marginLeft: '40px' }}>Rejected</Typography>
+                    ) : (
+                      <>
+                        <Button variant="contained" color="primary" onClick={() => handleNotificationClick(notified.id, true)} style={{ marginRight: "8px", width: '90px' }} disabled={status[notified.id] === "pending"}>
+                          Approve
+                        </Button>
+                        <Button variant="contained" color="error" onClick={() => handleNotificationClick(notified.id, false)} style={{ width: '80px' }} disabled={status[notified.id] === "pending"}>
+                          Reject
+                        </Button>
+                      </>
+                    )}
                 </TableCell>
               </TableRow>
-           ))}
+            ))}
           </TableBody>
         </Table>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={data?.getNotifications?.totalCount || 0}
-          rowsPerPage={rowsPerPage}
-          page={page - 1}
-          onPageChange={handlePage}
-          onRowsPerPageChange={handleRowsPerPage}
-        />
+        <div className='pagination'>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={data?.getNotifications?.totalCount || 0}
+            rowsPerPage={rowsPerPage}
+            page={page - 1}
+            onPageChange={handlePage}
+            onRowsPerPageChange={handleRowsPerPage}
+          />
+        </div>
       </TableContainer>
     </div>
   )

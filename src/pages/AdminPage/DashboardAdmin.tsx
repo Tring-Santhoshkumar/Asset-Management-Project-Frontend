@@ -1,18 +1,27 @@
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import { Avatar, Badge, Box, Button, Card, CardContent, CircularProgress, IconButton, Menu, MenuItem, Typography } from "@mui/material";
+import { Avatar, Badge, Box, Button, Card, CardContent, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import { useMutation, useQuery } from "@apollo/client";
 import { LATESTUPDATEDUSER, USERCHART } from "./DashboardAdminApi";
 import './DashboardAdminStyle.scss'
 import { GETALLASSETS } from "./AssetsApi";
 import { motion } from "framer-motion";
-import { GETNOTIFICATIONS, GETNOTIFICATIONSICON, READNOTIFICATIONS } from "./NotificationsApi";
-import { useState } from "react";
+import { GETNOTIFICATIONSICON, READNOTIFICATIONS } from "./NotificationsApi";
+import { useEffect, useState } from "react";
 import { toastAlert } from "../../component/customComponents/toastify";
 import AppLoaderComponent from "../../component/customComponents/Loader/AppLoaderComponent";
 
 const COLORS = ["#1976d2", "#64B5F6", "#FFBB28", "#FF8042"];
 const COLORS2 = ["#FFBB28", "#FF8042", "#EE2054"];
+
+interface Notification {
+  id: string;
+  message: string;
+  is_read: boolean;
+  approved: boolean;
+  rejected: boolean;
+  created_at: string;
+}
 
 const DashboardAdmin = () => {
 
@@ -38,22 +47,22 @@ const DashboardAdmin = () => {
   const assetTotalChart = Array.from(totalAssetsChart, ([name, value]) => ({ name, value }));
   const assetTypeChart = Array.from(typeAssetsChart, ([name, value]) => ({ name, value }));
 
-  // const { data: allNotifications, refetch } = useQuery(GETNOTIFICATIONS);
   const { data: allNotifications, refetch } = useQuery(GETNOTIFICATIONSICON);
-  const { data: latestUpdatedUser} = useQuery(LATESTUPDATEDUSER);
+  const { data: latestUpdatedUser } = useQuery(LATESTUPDATEDUSER);
   const [readNotifications] = useMutation(READNOTIFICATIONS);
-  const [anchorEl, setAnchorEl] = useState<any>(null);
+  const [anchorEl, setAnchorEl] = useState<Element | null>(null);
   const open = Boolean(anchorEl);
-  const handleClick = (e: any) => {
+  useEffect(() => { refetch() },[]);
+  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(e.currentTarget);
-  }; 
+  };
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const filterNotifications = allNotifications?.getAllNotificationsIcon?.filter((notification: any) => notification.is_read == false);
+  const filterNotifications = allNotifications?.getAllNotificationsIcon?.filter((notification: Notification) => notification.is_read === false);
 
   const [loader, setLoader] = useState(false);
-  const handleNotificationClick = async (id: Number, choice: boolean) => {
+  const handleNotificationClick = async (id: string, choice: boolean) => {
     setLoader(true);
     try {
       await readNotifications({ variables: { id, choice } });
@@ -76,7 +85,7 @@ const DashboardAdmin = () => {
         {filterNotifications?.length === 0 ? (
           <MenuItem>No notifications</MenuItem>
         ) : (
-          filterNotifications?.map((notification: any) => (
+          filterNotifications?.map((notification: Notification) => (
             <MenuItem key={notification.id}>
               {loader && <AppLoaderComponent />}
               <div style={{ display: "flex", flexDirection: "column", gap: '10px' }}>
@@ -97,7 +106,7 @@ const DashboardAdmin = () => {
       </Typography>
 
       <Typography variant="h6" align="center" sx={{ marginBottom: "20px", color: "#1976d2" }}>
-        Total Users: {userChart?.users?.length || 0}
+        Total Users: { userChart?.users?.length || 0 }
       </Typography>
 
       <CardContent className="dashboardGrid">
@@ -232,3 +241,4 @@ const DashboardAdmin = () => {
 };
 
 export default DashboardAdmin;
+

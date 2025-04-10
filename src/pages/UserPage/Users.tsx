@@ -3,10 +3,11 @@ import { useState, useEffect } from "react";
 import { DEASSIGNASSET, DELETEUSER, GETUSER, UPDATEUSER } from "./UsersApi";
 import { toastAlert } from "../../component/customComponents/toastify";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Badge, Box, Button, Card, CardActionArea, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, Menu, MenuItem, Select, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
+import { Badge, Box, Button, Card, CardActionArea, CardContent, Dialog, DialogActions, DialogContent,
+   DialogTitle, Divider, FormControl, IconButton, InputLabel, Menu, MenuItem, Select, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import DevicesIcon from "@mui/icons-material/Devices";
-import { ASSIGNASSET, GETALLASSETS, GETASSETBYUSERID, REQUESTASSET } from "../AdminPage/AssetsApi";
+import { ASSIGNASSET, GETALLASSETS, GETASSETBYUSERID } from "../AdminPage/AssetsApi";
 import { useForm } from "react-hook-form";
 import { CREATE_EXCHANGE_NOTIFICATION, CREATE_NOTIFICATION, GETNOTIFICATIONSBYID } from "../AdminPage/NotificationsApi";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -20,13 +21,9 @@ interface UserIdProp {
 
 const Users: React.FC<UserIdProp> = ({ userId }) => {
 
-  // const { data } = useQuery(GETUSER, { variables: { id: userId } });
-
   const location = useLocation();
 
   const isAdmin = location.pathname.startsWith("/admin/users");
-
-  // const selectedUserId = localStorage.getItem('selectedUserId');
 
   const { data, refetch } = useQuery(GETUSER, { variables: { id: userId }, fetchPolicy: "no-cache" });
 
@@ -40,8 +37,6 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const [assignAsset] = useMutation(ASSIGNASSET);
 
-  // const [requestAsset] = useMutation(REQUESTASSET);
-
   const [deleteUser] = useMutation(DELETEUSER);
 
   const [deAssignAsset] = useMutation(DEASSIGNASSET);
@@ -49,7 +44,8 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm({
     defaultValues: {
       name: "", email: "", dob: "", gender: "",
-      blood_group: "", marital_status: "", phone: "", address: "", designation: "", department: "", city: "", state: "", pin_code: "", country: ""
+      blood_group: "", marital_status: "", phone: "", address: "", 
+      designation: "", department: "", city: "", state: "", pin_code: "", country: ""
     },
   });
 
@@ -119,7 +115,6 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const handleOpenAssetStatus = () => {
     setOpenAssetStatus(true);
-    // console.log('Asset-',assetStatus);
   }
 
   const handleCloseAssetStatus = () => {
@@ -142,12 +137,13 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const [deleteLoader, setDeleteLoader] = useState(false);
 
+  const [deAssignLoader, setDeAssignLoader] = useState(false);
+
   const onAssignAsset = async () => {
     setAssignLoader(true);
     try {
       const updatedUserId = localStorage.getItem("selectedUserId") || userId;
       await assignAsset({ variables: { id: selectedAssetId, assigned_to: updatedUserId } });
-      // console.log('RESULT : ',res);
       toastAlert('success', "Asset Assigned Successfully!");
       await refetchAssetByUser();
     }
@@ -163,12 +159,9 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
 
   const onRequestAsset = async () => {
     try {
-      // await requestAsset({ variables: { id: selectedAssetId } });
-      // console.log("Mutation Response:", res);
       const selectedUser = data?.user?.name;
       const selectedAsset = assetData?.allAssets?.find((asset: any) => asset.id === selectedAssetId);
       const msg = `User ${selectedUser} requested asset ${selectedAsset.name}.`
-      // console.log('Filter : ',selectedAssetId,userId,msg);
       await createNotification({
         variables: {
           user_id: userId,
@@ -210,7 +203,6 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
     setDeleteLoader(true);
     try {
       await deleteUser({ variables: { id: userId } });
-      // console.log("Mutation Response:", res);
       toastAlert('success', "User Deleted Successfull!");
     }
     catch (error) {
@@ -225,6 +217,7 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
   }
 
   const onDeleteAssetForUser = async () => {
+    setDeAssignLoader(true);
     try {
       const res = await deAssignAsset({ variables: { id: assetStatus } });
       console.log("De", res);
@@ -232,9 +225,9 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
       toastAlert('success', 'Asset De-assigned Successfully!');
     }
     catch (error: any) {
-      // console.log(error);
       toastAlert('error', error);
     }
+    setDeAssignLoader(false);
     handleCloseAssetStatus();
   }
 
@@ -612,11 +605,12 @@ const Users: React.FC<UserIdProp> = ({ userId }) => {
         </div>
       )}
       {isAdmin ? <Dialog open={openAssetStatus} onClose={handleCloseAssetStatus}>
+        {deAssignLoader && <AppLoaderComponent/>}
         <DialogTitle><strong>Set Asset as Available</strong></DialogTitle>
         <DialogContent><p>Are You Sure want to Set the Asset as available?</p></DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAssetStatus} color="secondary">Cancel</Button>
-          <Button onClick={onDeleteAssetForUser} color="primary">Set Available</Button>
+          <Button onClick={onDeleteAssetForUser} color="primary" disabled={deAssignLoader}>Set Available</Button>
         </DialogActions>
       </Dialog> : ''}
 

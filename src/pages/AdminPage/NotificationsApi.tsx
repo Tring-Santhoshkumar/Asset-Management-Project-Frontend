@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 
 export const GETNOTIFICATIONS = gql`
-    query GetNotifications($page: Int!,$limit: Int!){
-        getNotifications(page: $page,limit: $limit){
+    query GetNotifications($page: Int!,$limit: Int!, $status: String){
+        getNotifications(page: $page,limit: $limit, status: $status){
             notifications{
               id
               message
@@ -89,3 +89,4 @@ export const READNOTIFICATIONS = gql`
         readNotifications(id: $id,choice: $choice)
     }
 `
+

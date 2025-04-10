@@ -11,7 +11,7 @@
     display: flex;
     flex-direction: column;
 
-    .logo{
+    .logo {
         border-radius: 5px;
     }
 
@@ -39,18 +39,36 @@
                 color: inherit;
             }
 
-            &.active{
-                color: black;
-        
-                a {
-                    color: black;
-                }
-            }
-        
-            &:hover {
+            // &.active {
+            //     color: black;
+
+            //     a {
+            //         color: black;
+            //     }
+            // }
+
+            // &:hover {
+            //     background-color: white;
+            //     color: #1976d2;
+
+            //     a {
+            //         color: #1976d2;
+            //     }
+            // }
+            &.active {
                 background-color: white;
                 color: #1976d2;
-        
+                font-weight: 600;
+
+                a {
+                    color: #1976d2;
+                }
+            }
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.8);
+                color: #1976d2;
+
                 a {
                     color: #1976d2;
                 }
@@ -58,6 +76,7 @@
 
         }
     }
+
     .logoutButton {
         padding: 50px 0px;
         margin-right: 150px;
