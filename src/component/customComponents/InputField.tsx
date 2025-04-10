@@ -12,6 +12,7 @@ interface InputType {
 }
 
 const InputField: React.FC<InputType> = ({ type, name, placeholder, options }) => {
+
     const { register, formState: { errors }, getValues } = useFormContext();
 
     const validation = {
@@ -31,16 +32,17 @@ const InputField: React.FC<InputType> = ({ type, name, placeholder, options }) =
         },
         confirmPassword: {
             required: "Confirm Password is required",
-            validate: (value: string) => value == getValues("password") || "Passwords do not match."
+            validate: (value: string) => value === getValues("password") || "Passwords do not match."
         },
         role: {
             required: "Role is required",
         },
         adminKey: {
             required: "Admin Key is required",
-            validate: (value: string) => value == "admin123" || "Invalid Admin Key,Enter correct credentials."
+            validate: (value: string) => value === "admin123" || "Invalid Admin Key,Enter correct credentials."
         }
     };
+
     const [showPassword, setShowPassword] = useState(false);
 
     const togglePasswordVisibility = () => {
@@ -65,17 +67,17 @@ const InputField: React.FC<InputType> = ({ type, name, placeholder, options }) =
                         endAdornment: (
                             <InputAdornment position="end">
                                 <IconButton onClick={togglePasswordVisibility} edge="end">
-                                    {showPassword == true ? <VisibilityOff /> : <Visibility />}
+                                    {showPassword === true ? <VisibilityOff /> : <Visibility />}
                                 </IconButton>
                             </InputAdornment>
-                        ),
+                        )
                     }
                         : undefined
                     }
                 />
             }
             {/* // ( <input type={type} placeholder={placeholder}  className='formInput' {...register(name, validation[name])} />)} */}
-            {errors?.[name] && <span className="formError">{errors[name]?.message as string}</span>}
+            {errors?.[name] && <span className="formError" data-testid={`${name}Error`}>{errors[name]?.message as string}</span>}
         </div>
     );
 };

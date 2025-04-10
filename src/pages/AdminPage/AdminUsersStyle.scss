@@ -24,6 +24,15 @@
       align-items: center;
     }
   }
+
+  .pagination{
+    position: sticky;
+    bottom: 0;
+    background-color: #fff;
+    z-index:2;
+    border-top: 1px solid #e0e0e0;
+}
+
   .filterSelect {
     background: #ffffff;
     color: #1976d2;

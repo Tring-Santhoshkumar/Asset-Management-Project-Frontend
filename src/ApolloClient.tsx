@@ -1,24 +1,16 @@
 import { ApolloClient, from, HttpLink, InMemoryCache } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
+import { toastAlert } from './component/customComponents/toastify';
 
 const httpLink = new HttpLink({
   uri: process.env.REACT_APP_URL,
 })
 
-// const tokenExpired = (token: string) => {
-//   try {
-//     const decoded: any = jwtDecode(token);
-//     // console.log("Expiration time :", decoded.exp * 1000, Date.now());
-//     return decoded.exp * 1000 < Date.now();
-//   } catch (error) {
-//     console.error("Error decoding token:", error);  
-//   }
-// };
-
 const handleLogout = () => {
   localStorage.clear();
   window.location.href = '/';
+  toastAlert('error','Session expired');
 }
 
 const errorLink = onError(({ graphQLErrors, networkError}) => {
@@ -26,11 +18,15 @@ const errorLink = onError(({ graphQLErrors, networkError}) => {
     graphQLErrors.forEach((error) => {
       if(error.message.includes('jwt expired')){
         // console.log('ERROR : ',error);
-        handleLogout();
+        // setTimeout(() => {
+          handleLogout();
+        // },5000);
       }
     })
   }
-  if (networkError) console.error(`Network error : ${networkError}`);
+  if (networkError){
+    console.error(`Network error : ${networkError}`);
+  }
 })
 
 
@@ -51,3 +47,4 @@ const client = new ApolloClient({
 })
 
 export default client;
+
